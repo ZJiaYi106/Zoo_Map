@@ -1,0 +1,24 @@
+<view class="ai-page">
+  <scroll-view class="msg-scroll" scroll-y scroll-into-view="{{scrollTo}}" scroll-with-animation>
+    <block wx:for="{{messages}}" wx:key="id">
+      <view class="msg {{item.role}}" id="msg-{{index}}">
+        <text class="msg-text">{{item.content}}</text>
+      </view>
+    </block>
+  </scroll-view>
+
+  <view class="quick-row">
+    <button class="quick-btn" size="mini" bindtap="quickSend" data-type="route_planning" data-text="请为我规划一条带老人轻松游的步行路线，考虑距离与坡度。">带老人轻松游路线</button>
+    <button class="quick-btn" size="mini" bindtap="quickSend" data-type="route_planning" data-text="请规划亲子科普路线，适合儿童学习与互动。">亲子科普路线</button>
+    <button class="quick-btn" size="mini" bindtap="quickSend" data-type="checkin" data-text="请根据当前时段推荐最佳打卡点与拍摄建议。">最佳打卡路线</button>
+  </view>
+
+  <view class="input-row">
+    <input class="input" placeholder="路线规划、景点问答、打卡需求…" value="{{input}}" bindinput="onInput" confirm-type="send" bindconfirm="send" />
+    <button class="send-btn" bindtap="send">发送</button>
+  </view>
+
+  <view class="voice-row">
+    <button class="voice-btn" bindtap="playVoice">语音播报（最近一条AI回复）</button>
+  </view>
+</view>

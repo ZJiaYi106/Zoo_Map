@@ -1,0 +1,38 @@
+<!-- 首页：景区介绍与功能入口 -->
+<view class="page">
+  <view class="banner">
+    <image wx:if="{{bannerOk}}" class="banner-img" src="/images/banner.jpg" mode="aspectFill" binderror="onBannerErr"></image>
+    <view wx:else class="banner-fallback">
+      <text class="banner-fallback-title">秦皇岛野生动物园</text>
+      <text class="banner-fallback-sub">AI 智能导览 · 亲子科普首选</text>
+    </view>
+  </view>
+
+  <view class="intro-card">
+    <view class="intro-title">景区简介</view>
+    <text class="intro-text">秦皇岛野生动物园位于北戴河新区，是中国最大的野生动物园之一，占地344公顷，饲养着东北虎、北极熊、非洲狮等200余种、10000余头（只）野生动物，分为猛兽区、食草区、鸟类区等多个区域，是亲子游、科普游的首选之地。</text>
+  </view>
+
+  <view class="grid">
+    <view class="grid-item" bindtap="goMap">
+      <text class="grid-emoji">🗺️</text>
+      <text>地图导航</text>
+    </view>
+    <view class="grid-item" bindtap="goAi">
+      <text class="grid-emoji">🤖</text>
+      <text>AI导览</text>
+    </view>
+    <view class="grid-item" bindtap="goScenic">
+      <text class="grid-emoji">🏞️</text>
+      <text>景点推荐</text>
+    </view>
+    <view class="grid-item" bindtap="goFacility">
+      <text class="grid-emoji">🏪</text>
+      <text>设施查询</text>
+    </view>
+  </view>
+
+  <view class="scan-tip">游园时可扫描园区二维码，快速进入导览与讲解</view>
+
+  <view class="mine-link" bindtap="goMine">我的</view>
+</view>

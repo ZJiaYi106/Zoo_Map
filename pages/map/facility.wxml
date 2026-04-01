@@ -1,0 +1,29 @@
+<view class="fac-page">
+  <view class="cats">
+    <view class="cat {{type==='厕所'?'on':''}}" data-type="厕所" bindtap="onCat">厕所</view>
+    <view class="cat {{type==='超市'?'on':''}}" data-type="超市" bindtap="onCat">超市</view>
+    <view class="cat {{type==='观景台'?'on':''}}" data-type="观景台" bindtap="onCat">观景台</view>
+    <view class="cat {{type==='休息区'?'on':''}}" data-type="休息区" bindtap="onCat">休息区</view>
+  </view>
+
+  <scroll-view class="list" scroll-y>
+    <block wx:for="{{list}}" wx:key="id">
+      <view class="row">
+        <view class="info">
+          <view class="name">{{item.name}}</view>
+          <text class="sub">距入口约 {{item.distance}} · {{item.intro}}</text>
+        </view>
+        <button
+          class="nav-btn"
+          size="mini"
+          bindtap="goMapNav"
+          data-lat="{{item.latitude}}"
+          data-lng="{{item.longitude}}"
+          data-name="{{item.name}}"
+          data-intro="{{item.intro}}"
+        >导航</button>
+      </view>
+    </block>
+    <view class="empty" wx:if="{{list.length===0}}">该分类下暂无设施数据</view>
+  </scroll-view>
+</view>

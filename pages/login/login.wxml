@@ -1,0 +1,27 @@
+<view class="login-page">
+  <view class="logo-wrap">
+    <text class="logo-emoji">🦁</text>
+    <text class="logo-name">秦皇岛野生动物园</text>
+    <text class="logo-sub">AI 智能导览</text>
+  </view>
+
+  <view class="dev-box">
+    <view class="dev-title">接口地址（真机必改）</view>
+    <input
+      class="dev-input"
+      placeholder="只填根地址，如 http://192.168.1.5:8000（不要带/health）"
+      value="{{apiBaseInput}}"
+      bindinput="onApiBaseInput"
+    />
+    <view class="dev-row">
+      <button class="dev-btn" size="mini" bindtap="saveApiBase">保存地址</button>
+      <button class="dev-btn primary" size="mini" bindtap="pingBackend">测试连接</button>
+    </view>
+    <text class="dev-hint">电脑连手机热点时：在电脑 cmd 执行 ipconfig，用「无线局域网」的 IPv4（勿用 127.0.0.1），填 http://该IP:8000。若提示 url not in domain list：开发者工具「详情→本地设置」勾选不校验合法域名后重新编译再扫码。后端：uvicorn main:app --host 0.0.0.0 --port 8000</text>
+  </view>
+
+  <button class="btn-primary login-btn" hover-class="btn-primary-hover" bindtap="wxLogin">
+    微信快捷登录
+  </button>
+  <view class="tip">微信快捷登录，无需注册</view>
+</view>

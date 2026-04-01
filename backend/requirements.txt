@@ -1,0 +1,9 @@
+fastapi==0.103.2
+uvicorn==0.22.0
+sqlalchemy==2.0.23
+pymysql==1.1.0
+redis==4.6.0
+httpx==0.24.1
+pydantic-settings==2.0.3
+PyJWT==2.8.0
+python-multipart==0.0.6

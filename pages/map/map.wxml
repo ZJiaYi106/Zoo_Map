@@ -1,0 +1,27 @@
+<!-- 地图导航页：原生 map + 标记点 + 底部详情 -->
+<view class="map-page">
+  <map
+    id="parkMap"
+    class="map"
+    longitude="{{longitude}}"
+    latitude="{{latitude}}"
+    scale="{{scale}}"
+    markers="{{markers}}"
+    show-location
+    bindmarkertap="onMarkerTap"
+  ></map>
+
+  <view class="toolbar">
+    <button class="tool-btn" bindtap="locateMe">定位当前位置</button>
+    <button class="tool-btn primary" bindtap="goAiRoute">AI规划路线</button>
+    <button class="tool-btn" bindtap="goFacility">设施查询</button>
+  </view>
+
+  <view class="popup" wx:if="{{showDetail}}">
+    <view class="popup-inner">
+      <view class="popup-title">{{currentMarker.title}}</view>
+      <text class="popup-desc">{{currentMarker.intro}}</text>
+      <button class="popup-close" bindtap="closePopup">关闭</button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,29 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/map/map",
+    "pages/scenic/scenic",
+    "pages/ai/ai",
+    "pages/mine/mine",
+    "pages/login/login",
+    "pages/map/facility"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#1E88E5",
+    "navigationBarTitleText": "秦皇岛野生动物园AI导览",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f5f5",
+    "backgroundTextStyle": "dark"
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "为了给您提供精准的景点导航和路线规划，需要获取您的当前位置"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation"
+  ],
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

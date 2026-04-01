@@ -1,0 +1,38 @@
+<view class="scenic-page">
+  <view class="tabs" wx:if="{{!favoritesOnly}}">
+    <view class="tab {{activeCat===''?'active':''}}" data-cat="" bindtap="onTab">全部</view>
+    <view class="tab {{activeCat==='猛兽区'?'active':''}}" data-cat="猛兽区" bindtap="onTab">猛兽区</view>
+    <view class="tab {{activeCat==='食草区'?'active':''}}" data-cat="食草区" bindtap="onTab">食草区</view>
+    <view class="tab {{activeCat==='鸟类区'?'active':''}}" data-cat="鸟类区" bindtap="onTab">鸟类区</view>
+  </view>
+  <view class="fav-bar" wx:if="{{favoritesOnly}}">
+    <text>我的收藏</text>
+  </view>
+
+  <scroll-view class="list" scroll-y>
+    <block wx:for="{{list}}" wx:key="id">
+      <view class="card">
+        <image class="cover" src="{{item.image}}" mode="widthFix" binderror="onImgErr" data-id="{{item.id}}"></image>
+        <view class="card-body">
+          <view class="name">{{item.name}}</view>
+          <text class="intro">{{item.intro}}</text>
+          <view class="actions">
+            <button class="mini primary" size="mini" bindtap="aiExplain" data-id="{{item.id}}" data-name="{{item.name}}">AI讲解</button>
+            <button class="mini" size="mini" bindtap="toggleFav" data-id="{{item.id}}">{{item.collected?'已收藏':'收藏'}}</button>
+          </view>
+        </view>
+      </view>
+    </block>
+    <view class="empty" wx:if="{{list.length===0}}">暂无数据，请检查网络或后端服务</view>
+  </scroll-view>
+
+  <view class="explain-mask" wx:if="{{explainShow}}">
+    <view class="explain-box">
+      <view class="explain-title">AI 讲解 · {{explainTitle}}</view>
+      <scroll-view scroll-y class="explain-body">
+        <text>{{explainText}}</text>
+      </scroll-view>
+      <button class="btn-primary small" bindtap="closeExplain">关闭</button>
+    </view>
+  </view>
+</view>
