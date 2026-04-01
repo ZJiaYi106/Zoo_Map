@@ -26,7 +26,7 @@
 }
 
 .cat.on {
-  background: #1e88e5;
+  background: #2d6b5a;
   color: #fff;
 }
 
@@ -69,7 +69,7 @@
   height: 64rpx !important;
   line-height: 64rpx !important;
   border-radius: 32rpx !important;
-  background: #1e88e5 !important;
+  background: #2d6b5a !important;
   color: #fff !important;
   font-size: 26rpx !important;
   padding: 0 !important;

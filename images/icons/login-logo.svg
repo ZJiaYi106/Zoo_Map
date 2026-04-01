@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+  <!-- 虎头：额前「王」纹 + 颊部虎纹 + 须，区别于家猫 -->
+  <path stroke="#2d6b5a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 16 L11 7 L17 12 M33 16 L37 7 L31 12"/>
+  <path stroke="#2d6b5a" stroke-width="2" stroke-linejoin="round" d="M13 19c1-5 5-9 11-9s10 4 11 9v5c0 7-5 14-11 14S13 31 13 24v-5z"/>
+  <path stroke="#2d6b5a" stroke-width="2" stroke-linecap="round" d="M24 13v6"/>
+  <path stroke="#2d6b5a" stroke-width="1.8" stroke-linecap="round" d="M19 15h10 M17 17h14 M19 19h10"/>
+  <path stroke="#2d6b5a" stroke-width="1.6" stroke-linecap="round" d="M12 22l4-3 M11 26l5-3 M12 30l4-2 M36 22l-4-3 M37 26l-5-3 M36 30l-4-2"/>
+  <path stroke="#2d6b5a" stroke-width="1.2" stroke-linecap="round" d="M8 23h5 M7 26h6 M8 29h5 M40 23h-5 M41 26h-6 M40 29h-5"/>
+  <ellipse cx="18" cy="23" rx="2.2" ry="2.5" fill="#2d6b5a"/>
+  <ellipse cx="30" cy="23" rx="2.2" ry="2.5" fill="#2d6b5a"/>
+  <path stroke="#2d6b5a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M21 28h6l-3 4z"/>
+  <path stroke="#2d6b5a" stroke-width="1.5" stroke-linecap="round" d="M20 33q4 3 8 0"/>
+</svg>

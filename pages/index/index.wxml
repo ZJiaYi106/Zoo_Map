@@ -1,7 +1,14 @@
 <!-- 首页：景区介绍与功能入口 -->
 <view class="page">
   <view class="banner">
-    <image wx:if="{{bannerOk}}" class="banner-img" src="/images/banner.jpg" mode="aspectFill" binderror="onBannerErr"></image>
+    <block wx:if="{{bannerOk}}">
+      <image class="banner-img" src="/images/home-banner.png" mode="aspectFill" binderror="onBannerErr"></image>
+      <view class="banner-gradient"></view>
+      <view class="banner-caption">
+        <text class="banner-title">秦皇岛野生动物园</text>
+        <text class="banner-sub">AI 智能导览 · 亲子科普首选</text>
+      </view>
+    </block>
     <view wx:else class="banner-fallback">
       <text class="banner-fallback-title">秦皇岛野生动物园</text>
       <text class="banner-fallback-sub">AI 智能导览 · 亲子科普首选</text>
@@ -15,20 +22,20 @@
 
   <view class="grid">
     <view class="grid-item" bindtap="goMap">
-      <text class="grid-emoji">🗺️</text>
-      <text>地图导航</text>
+      <image class="grid-icon" src="/images/icons/map.svg" mode="aspectFit" />
+      <text class="grid-label">地图导航</text>
     </view>
     <view class="grid-item" bindtap="goAi">
-      <text class="grid-emoji">🤖</text>
-      <text>AI导览</text>
+      <image class="grid-icon" src="/images/icons/ai.svg" mode="aspectFit" />
+      <text class="grid-label">AI导览</text>
     </view>
     <view class="grid-item" bindtap="goScenic">
-      <text class="grid-emoji">🏞️</text>
-      <text>景点推荐</text>
+      <image class="grid-icon" src="/images/icons/scenic.svg" mode="aspectFit" />
+      <text class="grid-label">景点推荐</text>
     </view>
     <view class="grid-item" bindtap="goFacility">
-      <text class="grid-emoji">🏪</text>
-      <text>设施查询</text>
+      <image class="grid-icon" src="/images/icons/facility.svg" mode="aspectFit" />
+      <text class="grid-label">设施查询</text>
     </view>
   </view>
 

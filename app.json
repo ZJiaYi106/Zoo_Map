@@ -9,7 +9,7 @@
     "pages/map/facility"
   ],
   "window": {
-    "navigationBarBackgroundColor": "#1E88E5",
+    "navigationBarBackgroundColor": "#2a4538",
     "navigationBarTitleText": "秦皇岛野生动物园AI导览",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#f5f5f5",

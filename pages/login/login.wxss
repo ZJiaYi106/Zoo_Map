@@ -14,16 +14,17 @@
   margin-bottom: 80rpx;
 }
 
-.logo-emoji {
-  font-size: 120rpx;
-  line-height: 1;
-  margin-bottom: 32rpx;
+.logo-img {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 28rpx;
+  flex-shrink: 0;
 }
 
 .logo-name {
   font-size: 36rpx;
   font-weight: 600;
-  color: #1e88e5;
+  color: #2d6b5a;
   margin-bottom: 12rpx;
 }
 
@@ -72,7 +73,7 @@
 }
 
 .dev-btn.primary {
-  background: #1e88e5 !important;
+  background: #2d6b5a !important;
   color: #fff !important;
 }
 

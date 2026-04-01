@@ -1,7 +1,7 @@
 // pages/index/index.js
 Page({
   data: {
-    bannerOk: false
+    bannerOk: true
   },
 
   onShow() {

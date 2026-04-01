@@ -26,7 +26,7 @@
 }
 
 .tab.active {
-  background: #1e88e5;
+  background: #2d6b5a;
   color: #fff;
 }
 
@@ -35,7 +35,7 @@
   background: #fff;
   font-size: 30rpx;
   font-weight: 600;
-  color: #1e88e5;
+  color: #2d6b5a;
 }
 
 .list {
@@ -91,7 +91,7 @@
 }
 
 .mini.primary {
-  background: #1e88e5 !important;
+  background: #2d6b5a !important;
   color: #fff !important;
 }
 
@@ -133,7 +133,7 @@
   font-size: 30rpx;
   font-weight: 600;
   margin-bottom: 16rpx;
-  color: #1e88e5;
+  color: #2d6b5a;
 }
 
 .explain-body {
