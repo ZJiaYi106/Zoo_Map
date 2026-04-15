@@ -1,4 +1,8 @@
 <view class="ai-page">
+  <view class="ai-toolbar">
+    <text class="ai-toolbar-hint">与 AI 的对话会保存在本机</text>
+    <button class="clear-btn" size="mini" bindtap="clearHistory">清空对话</button>
+  </view>
   <scroll-view class="msg-scroll" scroll-y scroll-into-view="{{scrollTo}}" scroll-with-animation>
     <block wx:for="{{messages}}" wx:key="id">
       <view class="msg {{item.role}}" id="msg-{{index}}">

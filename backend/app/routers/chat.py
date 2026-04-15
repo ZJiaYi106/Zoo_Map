@@ -38,6 +38,21 @@ def chat_history(
     return ApiResponse(data=PageResult(items=items, total=total, page=page, page_size=page_size))
 
 
+@router.delete("/history/clear", response_model=ApiResponse[dict])
+def clear_all_history(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """清空当前用户在服务端的全部 AI 对话记录（与小程序本地缓存需分别清除）。"""
+    deleted = (
+        db.query(ChatHistory)
+        .filter(ChatHistory.user_id == user.id)
+        .delete(synchronize_session=False)
+    )
+    db.commit()
+    return ApiResponse(data={"deleted": deleted})
+
+
 @router.delete("/history/{hid}", response_model=ApiResponse[dict])
 def delete_history(
     hid: int,

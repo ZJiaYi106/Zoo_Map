@@ -131,6 +131,41 @@ Page({
     wx.setStorageSync(STORAGE_KEY, slim);
   },
 
+  clearHistory() {
+    wx.showModal({
+      title: "清空对话",
+      content: "将删除本页全部聊天记录，并同步清空服务端已保存的对话（需已登录）。是否继续？",
+      confirmText: "清空",
+      confirmColor: "#c62828",
+      success: (res) => {
+        if (!res.confirm) return;
+        try {
+          wx.removeStorageSync(STORAGE_KEY);
+        } catch (e) {}
+        this.setData({
+          messages: [],
+          input: "",
+          scrollTo: "",
+          lastAssistantText: "",
+          lastAudioUrl: ""
+        });
+        const token =
+          (app.globalData && app.globalData.token) || wx.getStorageSync("token") || "";
+        if (!token) {
+          wx.showToast({ title: "已清空本地记录", icon: "none" });
+          return;
+        }
+        request("/api/chat/history/clear", { method: "DELETE" })
+          .then(() => {
+            wx.showToast({ title: "已清空", icon: "success" });
+          })
+          .catch(() => {
+            wx.showToast({ title: "本地已清空", icon: "none" });
+          });
+      }
+    });
+  },
+
   playVoice() {
     const url = this.data.lastAudioUrl;
     const text = this.data.lastAssistantText;

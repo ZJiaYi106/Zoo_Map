@@ -26,7 +26,55 @@ def infer_demand_type(text: str, hint: Optional[str]) -> str:
     return "qa"
 
 
-async def run_route_planning(db: Session, user_text: str) -> str:
+def _format_route_json_for_user(obj: Dict[str, Any]) -> str:
+    """将路线 JSON 转为用户可见的纯中文说明（不向用户暴露 JSON 键名）。"""
+    name = (obj.get("route_name") or "推荐游览路线").strip()
+    minutes = obj.get("duration_minutes")
+    diff = (obj.get("difficulty") or "适中").strip()
+    summary = (obj.get("summary") or "").strip()
+    crowd = (obj.get("crowding_hint") or "").strip()
+    poly = (obj.get("polyline_hint") or "").strip()
+    points = obj.get("points") or []
+
+    lines: list[str] = []
+    lines.append(f"为您规划：{name}")
+    if minutes is not None:
+        lines.append(f"预计全程约 {minutes} 分钟，体力难度：{diff}。")
+    else:
+        lines.append(f"体力难度：{diff}。")
+    if summary:
+        lines.append(summary)
+    if crowd:
+        lines.append(f"游园提示：{crowd}")
+    if poly:
+        lines.append(f"行走建议：{poly}")
+
+    if points:
+        lines.append("\n【建议游览顺序】")
+        for i, p in enumerate(points, 1):
+            if not isinstance(p, dict):
+                continue
+            pname = (p.get("name") or "景点").strip()
+            stay = p.get("stay_minutes")
+            note = (p.get("note") or "").strip()
+            seg = f"{i}. {pname}"
+            if stay is not None:
+                seg += f"（建议停留约 {stay} 分钟）"
+            lines.append(seg)
+            if note:
+                lines.append(f"   · {note}")
+
+    lines.append(
+        "\n温馨提示：园内请遵守安全规定，勿投喂、勿敲打玻璃；以上路线为智能规划参考，请以现场指引与当日公告为准。"
+    )
+    return "\n".join(lines).strip()
+
+
+async def run_route_planning(db: Session, user_text: str) -> Tuple[str, str]:
+    """
+    返回 (用户可见的中文说明, 原始 JSON 字符串)。
+    前端聊天只展示第一段；API 可把第二段放入 route 字段供地图使用。
+    """
     rows = db.query(Scenic).limit(50).all()
     ctx = [
         {
@@ -51,10 +99,27 @@ async def run_route_planning(db: Session, user_text: str) -> str:
     except Exception:
         raw = await chat_completion(
             prompts.SYSTEM_ROUTE + "\n若上一版非合法 JSON，请仅输出修正后的 JSON。",
-            user_text,
+            u,
             temperature=0.2,
         )
-    return raw
+        raw = raw.strip()
+        if not raw.startswith("{"):
+            m = re.search(r"\{[\s\S]*\}", raw)
+            if m:
+                raw = m.group(0)
+
+    try:
+        obj = json.loads(raw)
+        if not isinstance(obj, dict):
+            raise ValueError("not an object")
+        reply = _format_route_json_for_user(obj)
+        return reply, raw
+    except Exception:
+        fallback = (
+            "抱歉，本次路线规划未能生成结构化结果，请换种说法重试，或稍后再试。"
+            "\n若问题持续，请到游客服务中心咨询当日推荐路线。"
+        )
+        return fallback, raw
 
 
 async def run_scenic_guide(scenic_name: str) -> str:
@@ -87,9 +152,9 @@ async def run_chat_pipeline(
     extra: Optional[Dict[str, Any]] = None
 
     if dt == "route_planning":
-        raw = await run_route_planning(db, user_text)
-        extra = {"route_json": raw}
-        return raw, dt, extra
+        reply_text, raw_json = await run_route_planning(db, user_text)
+        extra = {"route_json": raw_json}
+        return reply_text, dt, extra
 
     if dt == "scenic_guide":
         # 从文本中提取景点名：简单取前 20 字或整句

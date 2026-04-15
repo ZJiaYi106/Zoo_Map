@@ -5,6 +5,37 @@
   background: #e8f4fc;
 }
 
+.ai-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx 24rpx 8rpx;
+  background: #e8f4fc;
+  flex-shrink: 0;
+}
+
+.ai-toolbar-hint {
+  font-size: 22rpx;
+  color: #78909c;
+  flex: 1;
+  margin-right: 16rpx;
+}
+
+.clear-btn {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  line-height: 1.6;
+  padding: 8rpx 20rpx;
+  background: #fff;
+  color: #c62828;
+  border: 1rpx solid #ffcdd2;
+  border-radius: 999rpx;
+}
+
+.clear-btn::after {
+  border: none;
+}
+
 .msg-scroll {
   flex: 1;
   padding: 24rpx;
