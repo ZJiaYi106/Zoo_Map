@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.config import get_llm_health_snapshot
 from app.database import get_db
 from app.deps import get_current_user
 from app.models.orm import ChatHistory, User
@@ -13,6 +14,12 @@ from app.schemas.common import ApiResponse
 from app.services import ai_agent
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
+
+
+@router.get("/health-llm", response_model=ApiResponse[dict])
+def ai_llm_health():
+    """LLM 配置自检（无需登录）。与小程序同前缀 /api/ai/，经 Nginx 时不易 404。"""
+    return ApiResponse(data=get_llm_health_snapshot())
 
 
 class ChatBody(BaseModel):

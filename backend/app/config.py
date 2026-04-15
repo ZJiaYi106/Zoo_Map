@@ -46,3 +46,18 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def get_llm_health_snapshot() -> dict:
+    """供 /health/llm 与 /api/ai/health-llm 使用；不返回 Key 明文。"""
+    key = (settings.llm_api_key or "").strip()
+    has_key = len(key) > 0
+    will_mock = (not has_key) and settings.allow_mock_llm
+    return {
+        "llm_api_base": settings.llm_api_base,
+        "llm_model": settings.llm_model,
+        "llm_key_loaded": has_key,
+        "allow_mock_llm": settings.allow_mock_llm,
+        "will_use_mock_reply": will_mock,
+        "env_file_read": str(_BACKEND_ROOT / ".env"),
+    }
