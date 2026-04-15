@@ -69,6 +69,5 @@ async def scenic_explain(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    _ = db
-    text = await ai_agent.run_scenic_guide(body.scenic_name)
+    text = await ai_agent.run_scenic_guide(body.scenic_name, db)
     return ApiResponse(data={"content": text, "reply": text})

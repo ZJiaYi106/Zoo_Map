@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.models.orm import Scenic
 from app.services import knowledge_base, prompts
 from app.services.llm_client import chat_completion
+from app.services.project_context import build_project_context_for_prompt
 
 # 意图兜底：避免「我要去看老虎」等仍落入 qa（演示/旧客户端/关键词漏配）
 _WAYFIND_RE = re.compile(
@@ -236,15 +237,17 @@ async def run_route_planning(db: Session, user_text: str) -> Tuple[str, str]:
         return fallback, raw
 
 
-async def run_scenic_guide(scenic_name: str) -> str:
-    u = prompts.build_user_scenic(scenic_name)
+async def run_scenic_guide(scenic_name: str, db: Session) -> str:
+    project_block = build_project_context_for_prompt(db)
+    u = prompts.build_user_scenic(scenic_name, project_block)
     return await chat_completion(prompts.SYSTEM_SCENIC, u, temperature=0.5)
 
 
-async def run_qa(user_text: str) -> str:
+async def run_qa(user_text: str, db: Session) -> str:
     chunks = knowledge_base.retrieve_chunks(user_text, top_k=5)
     kb = "\n".join(f"- ({c['id']}) {c['text']}" for c in chunks)
-    u = prompts.build_user_qa(user_text, kb)
+    project_block = build_project_context_for_prompt(db)
+    u = prompts.build_user_qa(user_text, kb, project_block)
     return await chat_completion(prompts.SYSTEM_QA, u, temperature=0.2)
 
 
@@ -272,7 +275,7 @@ async def run_chat_pipeline(
 
     if dt == "scenic_guide":
         focus = _extract_scenic_focus(user_text)
-        text = await run_scenic_guide(focus)
+        text = await run_scenic_guide(focus, db)
         return text, dt, extra
 
     if dt == "checkin":
@@ -280,5 +283,5 @@ async def run_chat_pipeline(
         text = await run_checkin(user_text, meta)
         return text, dt, extra
 
-    text = await run_qa(user_text)
+    text = await run_qa(user_text, db)
     return text, dt, extra
