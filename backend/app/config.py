@@ -1,11 +1,20 @@
 """应用配置：自环境变量加载。"""
+from pathlib import Path
 from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# 固定从 backend/.env 读取，避免从仓库根目录启动 uvicorn 时读不到环境变量（会导致一直走 Mock）
+_BACKEND_ROOT = Path(__file__).resolve().parent.parent
+_ENV_FILE = _BACKEND_ROOT / ".env"
+
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=str(_ENV_FILE),
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
     app_name: str = "qhd-wildlife-ai"
 

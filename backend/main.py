@@ -1,6 +1,8 @@
 """
 FastAPI 主入口：跨域、路由注册、统一异常（简要）。
 """
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy import text
@@ -52,6 +54,26 @@ def root():
 @app.get("/health")
 def health():
     return {"code": 0, "message": "ok", "data": {"status": "up"}}
+
+
+@app.get("/health/llm")
+def health_llm():
+    """检查大模型配置是否被进程加载（不返回 Key）。Mock 仍开启且 Key 为空时会一直用本地假数据。"""
+    key = (settings.llm_api_key or "").strip()
+    has_key = len(key) > 0
+    will_mock = (not has_key) and settings.allow_mock_llm
+    return {
+        "code": 0,
+        "message": "ok",
+        "data": {
+            "llm_api_base": settings.llm_api_base,
+            "llm_model": settings.llm_model,
+            "llm_key_loaded": has_key,
+            "allow_mock_llm": settings.allow_mock_llm,
+            "will_use_mock_reply": will_mock,
+            "env_file_read": str(Path(__file__).resolve().parent / ".env"),
+        },
+    }
 
 
 @app.get("/health/db")
