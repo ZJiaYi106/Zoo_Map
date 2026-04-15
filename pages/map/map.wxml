@@ -23,11 +23,14 @@
           </view>
         </block>
         <block wx:for="{{roadSegments}}" wx:key="id">
-          <view class="road {{item.onRoute?'on-route':''}}" style="{{item.style}}"></view>
+          <view
+            class="road {{item.onRoute?'on-route':''}} {{item.onRoute && isNavigating?'route-nav':''}}"
+            style="{{item.style}}"
+          ></view>
         </block>
         <block wx:for="{{poiList}}" wx:key="id">
           <view
-            class="poi {{item.typeClass}} {{item.onRoute?'on-route':''}} {{item.id===startId?'start':''}} {{item.id===endId?'end':''}} {{item.hidden?'is-hidden':''}}"
+            class="poi {{item.typeClass}} {{item.onRoute?'on-route':''}} {{item.onRoute && isNavigating?'route-pulse':''}} {{item.id===startId?'start':''}} {{item.id===endId?'end':''}} {{item.hidden?'is-hidden':''}}"
             style="left:{{item.x}}%;top:{{item.y}}%;"
             data-id="{{item.id}}"
             bindtap="onPoiTap"
@@ -46,6 +49,10 @@
 
   <view class="legend-box">
     <view class="legend-title">图例（点击筛选 / 选择目的地）</view>
+    <view class="route-line-legend" wx:if="{{hasRoute}}">
+      <view class="route-line-swatch"></view>
+      <text class="route-line-legend-text">橙色粗线为规划路线；开始导航后会有呼吸灯效果</text>
+    </view>
     <view class="legend-row">
       <block wx:for="{{legendItems}}" wx:key="type">
         <view class="legend-item {{activeLegendType===item.type?'on':''}}" data-type="{{item.type}}" bindtap="onLegendTap">

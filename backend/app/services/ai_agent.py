@@ -11,19 +11,141 @@ from app.models.orm import Scenic
 from app.services import knowledge_base, prompts
 from app.services.llm_client import chat_completion
 
+# 意图兜底：避免「我要去看老虎」等仍落入 qa（演示/旧客户端/关键词漏配）
+_WAYFIND_RE = re.compile(
+    r"(在哪|哪里|哪有|多远|怎么走|怎么去|带我去|导航到|路线|规划|目的地|超市|厕所|卫生间|洗手间|补给|买水|商店)"
+)
+_ANIMAL_OR_EXHIBIT_RE = re.compile(
+    r"(老虎|东北虎|虎园|狮子|非洲狮|狮虎|长颈鹿|斑马|猛兽|食草|鸟类|水禽|鹦鹉|熊猫|大象|猴子)"
+)
+
+
+def _extract_json_from_model_text(text: str) -> str:
+    """去掉 Markdown 代码围栏等，尽量得到可 json.loads 的对象串。"""
+    t = (text or "").strip()
+    if not t:
+        return t
+    if "```" in t:
+        m = re.search(r"```(?:json)?\s*([\s\S]*?)```", t, re.IGNORECASE)
+        if m:
+            t = m.group(1).strip()
+    if t.startswith("{"):
+        return t
+    m = re.search(r"\{[\s\S]*\}", t)
+    return m.group(0) if m else t
+
 
 def infer_demand_type(text: str, hint: Optional[str]) -> str:
-    """结合前端 hint 与关键词的意图理解。"""
-    if hint in ("route_planning", "scenic_guide", "qa", "checkin"):
+    """结合前端 hint 与关键词。快捷按钮会传 route_planning / scenic_guide / checkin；自由输入常带 qa，必须以文本为准再分类。"""
+    # 仅小程序「快捷需求」显式指定时强制采用（避免与下面文本推断混用）
+    if hint in ("route_planning", "scenic_guide", "checkin"):
         return hint
-    t = text.lower()
-    if any(k in t for k in ["打卡", "拍", "机位", "角度", "参数"]):
+
+    raw = (text or "").strip()
+    if not raw:
+        return "qa"
+
+    if any(k in raw for k in ("打卡", "拍", "机位", "角度", "参数", "摄影")):
         return "checkin"
-    if any(k in t for k in ["讲解", "介绍", "历史", "景点"]):
-        return "scenic_guide"
-    if any(k in t for k in ["路线", "规划", "老人", "亲子", "小时", "游"]):
+
+    # 问路、位置、设施、怎么走、经典路线词 → 交给路线规划（用户原话进模型，可含「去超市」「厕所」）
+    route_kw = (
+        "在哪",
+        "哪里",
+        "怎么走",
+        "怎么去",
+        "带我去",
+        "导航",
+        "超市",
+        "商店",
+        "补给",
+        "厕所",
+        "卫生",
+        "洗手",
+        "路线",
+        "规划",
+        "老人",
+        "亲子",
+        "小时",
+        "轻松游",
+        "科普路线",
+        "游园",
+        "游览",
+        "游玩",
+        "半日游",
+        "一日游",
+    )
+    if any(k in raw for k in route_kw):
         return "route_planning"
+
+    # 想看动物 / 展区讲解（非问路句式）
+    scenic_kw = (
+        "讲解",
+        "介绍",
+        "历史",
+        "老虎",
+        "东北虎",
+        "狮子",
+        "狮虎",
+        "非洲狮",
+        "长颈鹿",
+        "斑马",
+        "猛兽",
+        "食草",
+        "鸟类",
+        "水禽",
+        "鹦鹉",
+        "参观",
+        "看虎",
+        "看狮子",
+        "看长颈鹿",
+    )
+    if any(k in raw for k in scenic_kw):
+        return "scenic_guide"
+
     return "qa"
+
+
+def coerce_demand_type(user_text: str, dt: str) -> str:
+    """
+    infer 之后再纠偏：旧版前端仍传 qa、或关键词未覆盖时，避免动物/设施类问题掉进通用问答套话。
+    """
+    if dt in ("route_planning", "scenic_guide", "checkin"):
+        return dt
+    raw = (user_text or "").strip()
+    if not raw:
+        return dt
+
+    # 先问路 / 找设施 → 路线
+    if _WAYFIND_RE.search(raw):
+        return "route_planning"
+
+    # 看动物、去某展区 → 讲解（比泛泛 qa 更贴题）
+    if _ANIMAL_OR_EXHIBIT_RE.search(raw) or any(
+        k in raw for k in ("看虎", "看狮子", "看长颈鹿", "参观", "想看", "去看")
+    ):
+        return "scenic_guide"
+
+    return dt
+
+
+def _extract_scenic_focus(user_text: str) -> str:
+    """从自然语言中抽出讲解主题，便于讲解员提示词聚焦。"""
+    raw = (user_text or "").strip()
+    if not raw:
+        return "园内景点"
+    pairs = [
+        (("东北虎", "老虎", "看虎", "虎园"), "狮虎园与猛兽区（东北虎等）"),
+        (("非洲狮", "狮子", "狮虎"), "狮虎园猛兽展示"),
+        (("长颈鹿",), "长颈鹿互动广场"),
+        (("斑马", "食草动物"), "食草动物区"),
+        (("鸟类", "水禽", "鹦鹉", "鸟表演"), "鸟类与水禽展区"),
+        (("猛兽",), "猛兽区观景台"),
+    ]
+    for keys, label in pairs:
+        if any(k in raw for k in keys):
+            return label
+    return raw[:48]
 
 
 def _format_route_json_for_user(obj: Dict[str, Any]) -> str:
@@ -89,24 +211,16 @@ async def run_route_planning(db: Session, user_text: str) -> Tuple[str, str]:
     ]
     u = prompts.build_user_route(user_text, json.dumps(ctx, ensure_ascii=False))
     raw = await chat_completion(prompts.SYSTEM_ROUTE, u, temperature=0.3)
-    raw = raw.strip()
-    if not raw.startswith("{"):
-        m = re.search(r"\{[\s\S]*\}", raw)
-        if m:
-            raw = m.group(0)
+    raw = _extract_json_from_model_text(raw)
     try:
         json.loads(raw)
     except Exception:
-        raw = await chat_completion(
+        raw2 = await chat_completion(
             prompts.SYSTEM_ROUTE + "\n若上一版非合法 JSON，请仅输出修正后的 JSON。",
             u,
             temperature=0.2,
         )
-        raw = raw.strip()
-        if not raw.startswith("{"):
-            m = re.search(r"\{[\s\S]*\}", raw)
-            if m:
-                raw = m.group(0)
+        raw = _extract_json_from_model_text(raw2)
 
     try:
         obj = json.loads(raw)
@@ -148,7 +262,7 @@ async def run_chat_pipeline(
     返回 (plain_reply, normalized_type, extra)。
     extra 可含 route JSON 用于前端/地图。
     """
-    dt = infer_demand_type(user_text, demand_type)
+    dt = coerce_demand_type(user_text, infer_demand_type(user_text, demand_type))
     extra: Optional[Dict[str, Any]] = None
 
     if dt == "route_planning":
@@ -157,9 +271,8 @@ async def run_chat_pipeline(
         return reply_text, dt, extra
 
     if dt == "scenic_guide":
-        # 从文本中提取景点名：简单取前 20 字或整句
-        name = user_text.strip()[:20]
-        text = await run_scenic_guide(name)
+        focus = _extract_scenic_focus(user_text)
+        text = await run_scenic_guide(focus)
         return text, dt, extra
 
     if dt == "checkin":

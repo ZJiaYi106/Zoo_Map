@@ -1,5 +1,6 @@
 // pages/ai/ai.js — AI 对话、快捷需求、历史、语音播报
 const { request } = require("../../utils/request.js");
+const { formatRouteJsonForDisplay } = require("../../utils/aiReplyFormat.js");
 const app = getApp();
 
 const STORAGE_KEY = "ai_chat_history_local";
@@ -40,7 +41,8 @@ Page({
     return arr.map((m, i) => ({
       id: m.id || "h" + i,
       role: m.role,
-      content: m.content
+      content:
+        m.role === "assistant" ? formatRouteJsonForDisplay(m.content || "") : m.content
     }));
   },
 
@@ -77,15 +79,9 @@ Page({
     this._inferAndSend(text);
   },
 
-  /** 简单意图：优先走后端完整分类，此处先做关键词提示类型 */
+  /** 自由输入不传 demand_type，由后端根据全文关键词分类（避免误标成 qa） */
   _inferAndSend(text) {
-    let type = "qa";
-    if (/路线|规划|游|老人|亲子|打卡|小时/.test(text)) {
-      if (/打卡|拍|机位/.test(text)) type = "checkin";
-      else if (/老人|轻松|亲子|科普|小时|快速/.test(text)) type = "route_planning";
-      else type = "route_planning";
-    }
-    this._sendWithType(text, type);
+    this._sendWithType(text, null);
   },
 
   _sendWithType(text, demandType) {
@@ -96,14 +92,17 @@ Page({
     wx.showLoading({ title: "思考中" });
     const payload = {
       content: text,
-      demand_type: demandType,
       openid: (app.globalData.userInfo && app.globalData.userInfo.openid) || ""
     };
+    if (demandType) {
+      payload.demand_type = demandType;
+    }
     request("/api/ai/chat", { method: "POST", data: payload })
       .then((body) => {
         wx.hideLoading();
         const data = body.data || body;
-        const reply = data.reply || data.content || "暂无回复";
+        const rawReply = data.reply || data.content || "暂无回复";
+        const reply = formatRouteJsonForDisplay(rawReply);
         const audioUrl = data.tts_url || "";
         const list = this.data.messages.concat([
           { id: "a" + Date.now(), role: "assistant", content: reply, audio_url: audioUrl }

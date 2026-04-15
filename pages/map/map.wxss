@@ -88,23 +88,55 @@
 
 .road {
   position: absolute;
-  height: 7rpx;
-  background: #b8cbc3;
-  border-radius: 6rpx;
+  height: 6rpx;
+  background: #a8bbb2;
+  border-radius: 999rpx;
   transform-origin: 0 50%;
   z-index: 2;
+  opacity: 0.42;
+}
+
+/* 未规划路线时普通路稍明显一点 */
+.road:not(.on-route) {
+  filter: grayscale(12%);
 }
 
 .road.on-route {
-  height: 9rpx;
-  background: #2d6b5a;
-  box-shadow: 0 0 8rpx rgba(45, 107, 90, 0.6);
+  opacity: 1;
+  height: 20rpx;
+  z-index: 8;
+  border-radius: 999rpx;
+  border: 3rpx solid #fff;
+  background: linear-gradient(180deg, #ffe082 0%, #ff9800 45%, #f57c00 100%);
+  box-shadow:
+    0 0 0 3rpx rgba(255, 152, 0, 0.55),
+    0 8rpx 20rpx rgba(245, 124, 0, 0.48);
+  filter: none;
+}
+
+/* 导航进行中：路线更醒目 */
+.road.on-route.route-nav {
+  animation: routeLinePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes routeLinePulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 3rpx rgba(255, 152, 0, 0.55),
+      0 8rpx 20rpx rgba(245, 124, 0, 0.48);
+  }
+  50% {
+    box-shadow:
+      0 0 0 6rpx rgba(255, 193, 7, 0.75),
+      0 10rpx 28rpx rgba(255, 111, 0, 0.62);
+  }
 }
 
 .poi {
   position: absolute;
   transform: translate(-50%, -50%);
-  z-index: 3;
+  z-index: 10;
 }
 
 .poi.is-hidden {
@@ -122,7 +154,25 @@
 }
 
 .poi.on-route .dot {
-  background: #2d6b5a;
+  width: 22rpx;
+  height: 22rpx;
+  border-width: 3rpx;
+  box-shadow: 0 0 0 6rpx rgba(255, 152, 0, 0.42);
+  z-index: 1;
+}
+
+.poi.on-route.route-pulse .dot {
+  animation: poiRoutePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes poiRoutePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 6rpx rgba(255, 152, 0, 0.42);
+  }
+  50% {
+    box-shadow: 0 0 0 10rpx rgba(255, 193, 7, 0.55);
+  }
 }
 
 .poi.start .dot {
@@ -153,6 +203,13 @@
   max-width: 160rpx;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.poi.on-route .label {
+  border: 2rpx solid rgba(255, 152, 0, 0.55);
+  background: rgba(255, 248, 225, 0.98);
+  color: #5d4037;
+  font-weight: 600;
 }
 
 .user-pos {
@@ -192,6 +249,34 @@
   font-size: 22rpx;
   color: #60756d;
   margin-bottom: 8rpx;
+}
+
+.route-line-legend {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin: 0 0 12rpx;
+  padding: 10rpx 12rpx;
+  background: linear-gradient(90deg, rgba(255, 193, 7, 0.12), rgba(255, 152, 0, 0.06));
+  border-radius: 10rpx;
+  border: 1rpx solid rgba(255, 152, 0, 0.35);
+}
+
+.route-line-swatch {
+  flex-shrink: 0;
+  width: 48rpx;
+  height: 14rpx;
+  border-radius: 999rpx;
+  border: 2rpx solid #fff;
+  background: linear-gradient(180deg, #ffe082 0%, #ff9800 50%, #f57c00 100%);
+  box-shadow: 0 2rpx 8rpx rgba(245, 124, 0, 0.45);
+}
+
+.route-line-legend-text {
+  font-size: 20rpx;
+  color: #795548;
+  line-height: 1.4;
+  flex: 1;
 }
 
 .legend-row {
