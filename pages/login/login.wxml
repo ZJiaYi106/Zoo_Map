@@ -25,4 +25,9 @@
     微信快捷登录
   </button>
   <view class="tip">微信快捷登录，无需注册</view>
+
+  <view class="login-spacer"></view>
+  <view class="icp-footer">
+    <text class="icp-text" selectable="true">冀ICP备2025120735号</text>
+  </view>
 </view>

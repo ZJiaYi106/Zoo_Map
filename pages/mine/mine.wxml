@@ -10,4 +10,9 @@
     <view class="menu-item" bindtap="goAbout">关于我们</view>
     <view class="menu-item danger" bindtap="logout">退出登录</view>
   </view>
+
+  <view class="mine-spacer"></view>
+  <view class="icp-footer">
+    <text class="icp-text" selectable="true">冀ICP备2025120735号</text>
+  </view>
 </view>

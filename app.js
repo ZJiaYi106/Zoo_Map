@@ -23,7 +23,7 @@ App({
      * - 手机真机预览：必须改为电脑的局域网 IP，例如 http://192.168.1.5:8000（与电脑同一 WiFi）
      * 也可在登录页「调试」里临时保存，会覆盖此处（见 onLaunch）
      */
-    apiBase: "http://127.0.0.1:8000",
+    apiBase: "https://qhdzoo.site",
     token: "",
     userInfo: null,
     mapFocusFacilityId: null,
