@@ -17,13 +17,14 @@ Page({
     this.setData({ apiBaseInput: e.detail.value });
   },
 
-  /** 清除缓存中的接口地址，恢复为 app.js 默认（本机调试用 127.0.0.1） */
+  /** 清除缓存中的接口地址，恢复为 app.js 默认 */
   resetApiBase() {
     try {
       wx.removeStorageSync("apiBase");
-      app.globalData.apiBase = "http://127.0.0.1:8000";
-      this.setData({ apiBaseInput: "http://127.0.0.1:8000" });
-      wx.showToast({ title: "已恢复本机默认", icon: "success" });
+      const fallback = (app && app.globalData && app.globalData.apiBase) || "https://qhdzoo.site";
+      app.globalData.apiBase = fallback;
+      this.setData({ apiBaseInput: fallback });
+      wx.showToast({ title: "已恢复默认", icon: "success" });
     } catch (e) {
       wx.showToast({ title: "操作失败", icon: "none" });
     }

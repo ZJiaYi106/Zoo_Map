@@ -97,6 +97,77 @@
   color: #444;
 }
 
+/* 天气卡片 */
+.weather-card {
+  margin: 0 24rpx 24rpx;
+  padding: 24rpx 20rpx 16rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.06);
+}
+
+.weather-header {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 16rpx;
+  padding: 0 4rpx;
+}
+
+.weather-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2d6b5a;
+  margin-right: 12rpx;
+}
+
+.weather-sub {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.weather-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.weather-hour {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120rpx;
+  padding: 12rpx 0;
+  flex-shrink: 0;
+}
+
+.wh-time {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+
+.wh-icon {
+  font-size: 40rpx;
+  margin-bottom: 6rpx;
+}
+
+.wh-temp {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4rpx;
+}
+
+.wh-text {
+  font-size: 22rpx;
+  color: #888;
+  margin-bottom: 2rpx;
+}
+
+.wh-pop {
+  font-size: 20rpx;
+  color: #5b9bd5;
+}
+
 .grid {
   display: flex;
   flex-wrap: wrap;

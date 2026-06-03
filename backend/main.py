@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import get_llm_health_snapshot, settings
 from app.database import Base, engine
-from app.routers import ai, auth, chat, collection, facility, scenic
+from app.routers import ai, auth, chat, collection, facility, scenic, weather
 
 app = FastAPI(title=settings.app_name, version="1.0.0")
 
@@ -96,3 +96,4 @@ app.include_router(scenic.router)
 app.include_router(facility.router)
 app.include_router(collection.router)
 app.include_router(chat.router)
+app.include_router(weather.router)

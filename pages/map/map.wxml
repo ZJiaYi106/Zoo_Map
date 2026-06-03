@@ -1,4 +1,5 @@
-<!-- 地图导航页：园区内模拟地图（无底图版） -->
+<!-- 地图导航页：海滨国家森林公园手绘导览图 -->
+<wxs src="./map-gesture.wxs" module="gesture" />
 <view class="map-page">
   <view class="nav-bar {{isNavigating?'on':''}}">
     <text>{{navHint}}</text>
@@ -14,27 +15,44 @@
   </view>
 
   <view class="map-wrap">
-    <view class="inner-map" bindtouchstart="onMapTouchStart" bindtouchmove="onMapTouchMove" bindtouchend="onMapTouchEnd">
-      <view class="scene" style="{{sceneStyle}}">
-        <view class="grid-bg"></view>
-        <block wx:for="{{zones}}" wx:key="id">
-          <view class="zone {{item.cls}}" style="{{item.style}}">
-            <text class="zone-label">{{item.name}}</text>
-          </view>
-        </block>
+    <view
+      id="mapViewport"
+      class="inner-map"
+      style="{{mapViewportStyle}}"
+      data-vw="{{mapCam.vw}}"
+      data-vh="{{mapCam.vh}}"
+      data-ch="{{mapCam.ch}}"
+      data-min-scale="{{mapCam.minScale}}"
+      data-max-scale="{{mapCam.maxScale}}"
+      data-tx="{{mapCam.tx}}"
+      data-ty="{{mapCam.ty}}"
+      data-scale="{{mapCam.scale}}"
+      mapCam="{{mapCam}}"
+      change:mapCam="{{gesture.onGestureData}}"
+    >
+      <view id="mapScene" class="scene" style="{{sceneStyle}}">
+        <view
+          class="map-gesture-layer"
+          catchtouchstart="{{gesture.touchStart}}"
+          catchtouchmove="{{gesture.touchMove}}"
+          catchtouchend="{{gesture.touchEnd}}"
+          catchtouchcancel="{{gesture.touchCancel}}"
+        ></view>
+        <image class="map-bg" src="{{mapImage}}" mode="scaleToFill" show-menu-by-longpress="{{false}}" />
         <block wx:for="{{roadSegments}}" wx:key="id">
-          <view
-            class="road {{item.onRoute?'on-route':''}} {{item.onRoute && isNavigating?'route-nav':''}}"
-            style="{{item.style}}"
-          ></view>
+          <view class="road on-route" style="{{item.style}}"></view>
+        </block>
+        <block wx:for="{{routeDots}}" wx:key="id">
+          <view class="route-dot" style="{{item.style}}"></view>
         </block>
         <block wx:for="{{poiList}}" wx:key="id">
           <view
-            class="poi {{item.typeClass}} {{item.onRoute?'on-route':''}} {{item.onRoute && isNavigating?'route-pulse':''}} {{item.id===startId?'start':''}} {{item.id===endId?'end':''}} {{item.hidden?'is-hidden':''}}"
+            class="poi {{item.typeClass}} {{item.onRoute?'on-route':''}} {{item.id===startId?'start':''}} {{item.id===endId?'end':''}} {{item.hidden?'is-hidden':''}}"
             style="left:{{item.x}}%;top:{{item.y}}%;"
             data-id="{{item.id}}"
-            bindtap="onPoiTap"
+            catchtap="onPoiTap"
           >
+            <view class="poi-hit"></view>
             <view class="dot"></view>
             <text class="label" wx:if="{{item.id===startId || item.id===endId || item.onRoute}}">{{item.name}}</text>
           </view>
@@ -44,6 +62,11 @@
           <text class="user-pos-label">您当前所在的位置</text>
         </view>
       </view>
+      <view class="zoom-bar">
+        <view class="zoom-btn" catchtap="onZoomOut">−</view>
+        <view class="zoom-btn" catchtap="onZoomReset">全图</view>
+        <view class="zoom-btn" catchtap="onZoomIn">+</view>
+      </view>
     </view>
   </view>
 
@@ -51,7 +74,7 @@
     <view class="legend-title">图例（点击筛选 / 选择目的地）</view>
     <view class="route-line-legend" wx:if="{{hasRoute}}">
       <view class="route-line-swatch"></view>
-      <text class="route-line-legend-text">橙色粗线为规划路线；开始导航后会有呼吸灯效果</text>
+      <text class="route-line-legend-text">绿色线沿米色园路弯道绘制，白点为路线节点</text>
     </view>
     <view class="legend-row">
       <block wx:for="{{legendItems}}" wx:key="type">
@@ -69,7 +92,7 @@
   </view>
 
   <view class="route-box">
-    <view class="route-title">{{isNavigating?'导航中':'路线建议（模拟）'}}</view>
+    <view class="route-title">{{isNavigating?'导航中':'推荐园路'}}</view>
     <text class="route-path">{{routeText}}</text>
     <text class="route-meta">约 {{routeMeters}} 米 · 步行 {{routeMinutes}} 分钟</text>
     <view class="route-actions">

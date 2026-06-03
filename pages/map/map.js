@@ -1,93 +1,85 @@
-// pages/map/map.js — 园区内模拟地图（可缩放/可拖拽/导航跟随）
+// pages/map/map.js — 海滨国家森林公园手绘导览图导航
 
-const POI_SEED = [
-  { id: 1, name: "东门入口", intro: "建议从东门入园，先看导览牌规划路线。", type: "gate", x: 90, y: 84 },
-  { id: 2, name: "游客服务中心", intro: "票务咨询、寄存与失物招领。", type: "service", x: 18, y: 72 },
-  { id: 3, name: "猛兽区观景台", intro: "可俯瞰猛兽活动区，建议保持安静，勿投喂。", type: "scenic", x: 28, y: 28 },
-  { id: 4, name: "狮虎园", intro: "东北虎、非洲狮等猛兽展示，科普牌示丰富。", type: "scenic", x: 43, y: 24 },
-  { id: 15, name: "狮虎园观景台", intro: "猛兽区经典拍照机位，请勿越线。", type: "view", x: 35, y: 31 },
-  { id: 5, name: "中央补给站", intro: "休息补给点，适合作为中段换线节点。", type: "service", x: 46, y: 52 },
-  { id: 6, name: "食草动物区", intro: "长颈鹿、斑马等食草动物散养区域。", type: "scenic", x: 62, y: 50 },
-  { id: 7, name: "长颈鹿互动广场", intro: "互动时间以当日公告为准，请文明排队。", type: "scenic", x: 74, y: 42 },
-  { id: 8, name: "鸟类表演场", intro: "鸟类互动与科普讲解场次见现场公告。", type: "scenic", x: 78, y: 72 },
-  { id: 9, name: "水禽湖", intro: "适合观察水禽、休憩拍照。", type: "scenic", x: 56, y: 82 },
-  { id: 10, name: "园区东门厕所", intro: "无障碍卫生间位于东门入口附近。", type: "toilet", x: 82, y: 78 },
-  { id: 11, name: "中央超市", intro: "饮用水、简餐与纪念品。", type: "shop", x: 50, y: 58 },
-  { id: 12, name: "北门卫生间", intro: "靠近北门停车区。", type: "toilet", x: 50, y: 10 },
-  { id: 13, name: "林荫休息区", intro: "长椅和遮阴较多，适合短暂停留。", type: "rest", x: 62, y: 62 },
-  { id: 14, name: "湖畔观景台", intro: "水禽湖经典拍照机位。", type: "view", x: 60, y: 90 }
-];
-
-const EDGE_SEED = [
-  [1, 2], [2, 10], [2, 5], [2, 3],
-  [3, 4], [3, 15], [4, 15], [4, 12], [4, 6], [4, 5],
-  [5, 6], [5, 11], [5, 13], [5, 9],
-  [6, 7], [6, 13], [6, 8],
-  [8, 9], [8, 13], [9, 14], [9, 13],
-  [10, 5], [11, 13]
-];
-
-const ZONE_SEED = [
-  { id: 1, name: "猛兽区", cls: "zone-beast", style: "left:18%;top:12%;width:34%;height:24%;transform:rotate(-8deg);" },
-  { id: 2, name: "食草区", cls: "zone-herb", style: "left:50%;top:34%;width:34%;height:24%;transform:rotate(6deg);" },
-  { id: 3, name: "鸟类区", cls: "zone-bird", style: "left:62%;top:62%;width:30%;height:24%;transform:rotate(-4deg);" },
-  { id: 4, name: "服务区", cls: "zone-service", style: "left:30%;top:58%;width:30%;height:18%;transform:rotate(2deg);" }
-];
-
-const METER_PER_PERCENT = 15;
-const MIN_SCALE = 0.9;
-const MAX_SCALE = 2.6;
-const SCENE_TO_POI = {
-  east_gate: 1,
-  east: 1,
-  entrance_east: 1
-};
-const TYPE_META = {
-  gate: { label: "入口", cls: "type-gate", color: "#1e88e5" },
-  service: { label: "服务", cls: "type-service", color: "#7b5fb7" },
-  scenic: { label: "景点", cls: "type-scenic", color: "#2e7d32" },
-  view: { label: "观景台", cls: "type-view", color: "#ef6c00" },
-  toilet: { label: "厕所", cls: "type-toilet", color: "#00838f" },
-  shop: { label: "商店", cls: "type-shop", color: "#6d4c41" },
-  rest: { label: "休息区", cls: "type-rest", color: "#546e7a" }
-};
+const {
+  MAP_IMAGE,
+  MAP_ASPECT_FALLBACK,
+  METER_PER_PERCENT,
+  POI_SEED,
+  EDGE_SEED,
+  SCENE_TO_POI,
+  TYPE_META,
+  buildNodeMap
+} = require("./map-data.js");
 
 function edgeKey(a, b) {
   return a < b ? `${a}-${b}` : `${b}-${a}`;
 }
 
-function euclid(a, b) {
-  const dx = a.x - b.x;
-  const dy = a.y - b.y;
+function euclid(p1, p2) {
+  const dx = p1.x - p2.x;
+  const dy = p1.y - p2.y;
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-function touchDistance(t1, t2) {
-  const dx = t1.pageX - t2.pageX;
-  const dy = t1.pageY - t2.pageY;
-  return Math.sqrt(dx * dx + dy * dy);
+function polylineLength(points) {
+  let sum = 0;
+  for (let i = 1; i < points.length; i += 1) sum += euclid(points[i - 1], points[i]);
+  return sum;
+}
+
+/** Catmull-Rom 样条插值：在 p1→p2 之间用 p0/p3 控制曲线弧度 */
+function catmullRom(p0, p1, p2, p3, t) {
+  const t2 = t * t;
+  const t3 = t2 * t;
+  const cx = 0.5 * (2 * p1.x + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3);
+  const cy = 0.5 * (2 * p1.y + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3);
+  return { x: cx, y: cy };
+}
+
+/** 将折线顶点用 Catmull-Rom 样条平滑并超采样，使线路呈现细腻曲线 */
+function smoothPolyline(polyline, sampleInterval) {
+  if (polyline.length < 2) return polyline;
+  var result = [];
+  for (var i = 0; i < polyline.length - 1; i++) {
+    var p0 = polyline[i > 0 ? i - 1 : 0];
+    var p1 = polyline[i];
+    var p2 = polyline[i + 1];
+    var p3 = polyline[i < polyline.length - 2 ? i + 2 : polyline.length - 1];
+    var dx = p2.x - p1.x;
+    var dy = p2.y - p1.y;
+    var segLen = Math.sqrt(dx * dx + dy * dy);
+    var n = Math.max(4, Math.ceil(segLen / sampleInterval));
+    for (var j = 0; j < n; j++) {
+      result.push(catmullRom(p0, p1, p2, p3, j / n));
+    }
+  }
+  result.push(polyline[polyline.length - 1]);
+  return result;
 }
 
 Page({
   data: {
+    mapImage: MAP_IMAGE,
     poiList: [],
-    zones: [],
     roadSegments: [],
+    routeDots: [],
     showDetail: false,
     currentPoi: { id: null, name: "", intro: "", type: "" },
-    startId: 2,
-    endId: 3,
-    startIndex: 1,
-    endIndex: 2,
+    startId: 13,
+    endId: 6,
+    startIndex: 12,
+    endIndex: 5,
     poiNames: [],
     routeText: "未规划路线",
     routeMeters: 0,
     routeMinutes: 0,
     isNavigating: false,
     navHint: "",
-    sceneStyle: "transform: translate(0px, 0px) scale(1);",
+    sceneStyle: "transform: translate3d(0px, 0px, 0) scale(1);",
+    mapViewportStyle: "",
+    mapCam: { ready: 0, vw: 0, vh: 0, ch: 0, minScale: 1, maxScale: 3, tx: 0, ty: 0, scale: 1 },
     hasRoute: false,
-    userPoiId: 1,
+    userPoiId: 13,
     userPosStyle: "",
     legendItems: [],
     activeLegendType: "all",
@@ -95,21 +87,26 @@ Page({
   },
 
   onLoad(options) {
+    this.nodeMap = buildNodeMap();
     this.poiMap = {};
     POI_SEED.forEach((p) => { this.poiMap[p.id] = p; });
+    this.edgePolylineMap = this._buildEdgePolylineMap();
     this.adj = this._buildGraph();
     this.viewport = { w: 0, h: 0 };
+    this.contentHeight = 0;
+    this.mapAspect = MAP_ASPECT_FALLBACK;
     this.camera = { scale: 1, tx: 0, ty: 0 };
+    this.fitScale = 1;
     this.routePath = [];
     this.routePolyline = [];
     this.gesture = null;
 
     this.setData({
       poiList: this._decoratePoiList(new Set(), "all"),
-      zones: ZONE_SEED,
-      roadSegments: this._buildRoadSegments(new Set()),
+      roadSegments: [],
       poiNames: POI_SEED.map((p) => p.name),
-      legendItems: this._buildLegendItems()
+      legendItems: this._buildLegendItems(),
+      navHint: "沿米色园路步行，绿色线为推荐路线"
     });
 
     this._initUserPositionByQr(options || {});
@@ -122,51 +119,253 @@ Page({
   },
 
   onReady() {
-    this._measureViewport(() => {
-      this._syncUserPosStyle();
-      this._centerOnPoi(this.data.userPoiId || this.data.startId, false);
-      this._updateSceneStyle();
+    this._loadMapImageMeta(() => {
+      this._layoutMapStage(() => {
+        this._syncUserPosStyle();
+        this._centerOnPoi(this.data.userPoiId || this.data.startId, true);
+      });
     });
   },
 
   onUnload() {},
 
+  _loadMapImageMeta(cb) {
+    wx.getImageInfo({
+      src: MAP_IMAGE,
+      success: (res) => {
+        if (res.width && res.height) this.mapAspect = res.width / res.height;
+        if (cb) cb();
+      },
+      fail: () => {
+        this.mapAspect = MAP_ASPECT_FALLBACK;
+        if (cb) cb();
+      }
+    });
+  },
+
+  _layoutMapStage(cb, retry) {
+    const q = wx.createSelectorQuery();
+    q.select(".map-wrap").boundingClientRect();
+    q.exec((res) => {
+      const wrap = res && res[0];
+      if (!wrap || !wrap.width) {
+        if (cb) cb();
+        return;
+      }
+      if ((!wrap.height || wrap.height < 80) && (retry || 0) < 8) {
+        setTimeout(() => this._layoutMapStage(cb, (retry || 0) + 1), 60);
+        return;
+      }
+      const win = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+      const winH = win.windowHeight || 640;
+      const margin = 12;
+      const availW = wrap.width - margin;
+      let availH = Math.max(wrap.height, winH * 0.48) - 8;
+      const aspect = this.mapAspect || MAP_ASPECT_FALLBACK;
+      let mapW;
+      let mapH;
+      /* 竖版导览图：优先占满可视高度，宽度按比例收缩，两侧留白 */
+      if (aspect < 0.9) {
+        mapH = availH;
+        mapW = mapH * aspect;
+        if (mapW > availW) {
+          mapW = availW;
+          mapH = mapW / aspect;
+        }
+      } else {
+        mapW = availW;
+        mapH = mapW / aspect;
+        if (mapH > availH) {
+          mapH = availH;
+          mapW = mapH * aspect;
+        }
+      }
+      this.viewport = { w: mapW, h: mapH };
+      this.contentHeight = mapH;
+      this.fitScale = 1;
+      this.minScale = 0.85;
+      this.maxScale = 3.2;
+      this.camera = { scale: 1, tx: 0, ty: 0 };
+      this.setData({
+        mapViewportStyle: `width:${mapW}px;height:${mapH}px;margin:6px auto 0;`
+      }, () => {
+        this._pushMapCam({ scale: 1, tx: 0, ty: 0 });
+        if (cb) cb();
+      });
+    });
+  },
+
   _measureViewport(cb) {
     const q = wx.createSelectorQuery();
-    q.select(".inner-map").boundingClientRect();
+    q.select("#mapViewport").boundingClientRect();
     q.exec((res) => {
       const r = res && res[0];
       if (!r || !r.width || !r.height) return;
       this.viewport = { w: r.width, h: r.height };
+      this.contentHeight = r.height;
       if (cb) cb();
     });
   },
 
+  _pushMapCam(partial) {
+    const { w, h } = this.viewport;
+    const ch = this.contentHeight || h;
+    const cam = {
+      scale: partial.scale != null ? partial.scale : this.camera.scale,
+      tx: partial.tx != null ? partial.tx : this.camera.tx,
+      ty: partial.ty != null ? partial.ty : this.camera.ty
+    };
+    this._clampCamera(cam);
+    this.camera = cam;
+    this.setData({
+      sceneStyle: `transform: translate3d(${cam.tx}px, ${cam.ty}px, 0) scale(${cam.scale});`,
+      mapCam: {
+        ready: 1,
+        vw: w,
+        vh: h,
+        ch,
+        minScale: this.minScale,
+        maxScale: this.maxScale,
+        tx: cam.tx,
+        ty: cam.ty,
+        scale: cam.scale
+      }
+    });
+  },
+
+  syncMapCamera(e) {
+    const p = e || {};
+    this.camera = {
+      tx: Number(p.tx) || 0,
+      ty: Number(p.ty) || 0,
+      scale: Number(p.scale) || 1
+    };
+  },
+
+  onMapTapAt(e) {
+    const px = Number(e.x);
+    const py = Number(e.y);
+    if (!px && !py) return;
+    const q = wx.createSelectorQuery();
+    q.select("#mapScene").boundingClientRect();
+    q.exec((res) => {
+      const rect = res && res[0];
+      if (!rect || !rect.width || !rect.height) return;
+      const s = this.camera.scale || 1;
+      const lx = (px - rect.left - (this.camera.tx || 0)) / s;
+      const ly = (py - rect.top - (this.camera.ty || 0)) / s;
+      const pctX = (lx / rect.width) * 100;
+      const pctY = (ly / rect.height) * 100;
+      let hit = null;
+      let best = 8;
+      POI_SEED.forEach((p) => {
+        if (this.data.activeLegendType !== "all" && p.type !== this.data.activeLegendType) return;
+        const d = Math.sqrt((p.x - pctX) ** 2 + (p.y - pctY) ** 2);
+        if (d < best) {
+          best = d;
+          hit = p;
+        }
+      });
+      if (hit) this._openPoiDetail(hit);
+    });
+  },
+
+  _openPoiDetail(poi) {
+    if (!poi) return;
+    this.setData({ showDetail: true, currentPoi: poi });
+  },
+
+  _buildEdgePolylineMap() {
+    const map = {};
+    EDGE_SEED.forEach((edge) => {
+      const na = this.nodeMap[edge.a];
+      const nb = this.nodeMap[edge.b];
+      const via = (edge.via || []).map((p) => ({ x: p.x, y: p.y }));
+      map[edgeKey(edge.a, edge.b)] = {
+        from: edge.a,
+        points: [na, ...via, nb]
+      };
+    });
+    return map;
+  },
+
+  _getEdgePolyline(a, b) {
+    const entry = this.edgePolylineMap[edgeKey(a, b)];
+    if (entry) {
+      return entry.from === a ? entry.points : entry.points.slice().reverse();
+    }
+    const na = this.nodeMap[a];
+    const nb = this.nodeMap[b];
+    if (na && nb) return [na, nb];
+    return [];
+  },
+
   _buildGraph() {
     const adj = {};
-    POI_SEED.forEach((p) => { adj[p.id] = []; });
-    EDGE_SEED.forEach(([a, b]) => {
-      const w = euclid(this.poiMap[a], this.poiMap[b]);
-      adj[a].push({ to: b, w });
-      adj[b].push({ to: a, w });
+    Object.keys(this.nodeMap).forEach((id) => { adj[id] = []; });
+    EDGE_SEED.forEach((edge) => {
+      const pts = this._getEdgePolyline(edge.a, edge.b);
+      const w = polylineLength(pts);
+      adj[edge.a].push({ to: edge.b, w });
+      adj[edge.b].push({ to: edge.a, w });
     });
     return adj;
   },
 
-  _buildRoadSegments(routeEdgeSet) {
-    return EDGE_SEED.map(([a, b], idx) => {
-      const p1 = this.poiMap[a];
-      const p2 = this.poiMap[b];
+  _expandPathToPolyline(pathIds) {
+    if (!pathIds || pathIds.length < 2) return [];
+    let poly = [];
+    for (let i = 0; i < pathIds.length - 1; i += 1) {
+      const seg = this._getEdgePolyline(pathIds[i], pathIds[i + 1]);
+      if (!seg.length) continue;
+      if (!poly.length) poly = seg.slice();
+      else poly = poly.concat(seg.slice(1));
+    }
+    return poly;
+  },
+
+  _buildRouteSegments(polyline) {
+    const segments = [];
+    for (let i = 0; i < polyline.length - 1; i += 1) {
+      const p1 = polyline[i];
+      const p2 = polyline[i + 1];
       const dx = p2.x - p1.x;
       const dy = p2.y - p1.y;
       const len = Math.sqrt(dx * dx + dy * dy);
       const ang = (Math.atan2(dy, dx) * 180) / Math.PI;
-      return {
-        id: idx + 1,
+      segments.push({
+        id: i + 1,
         style: `left:${p1.x}%;top:${p1.y}%;width:${len}%;transform:rotate(${ang}deg);`,
-        onRoute: routeEdgeSet.has(edgeKey(a, b))
-      };
-    });
+        onRoute: true
+      });
+    }
+    return segments;
+  },
+
+  _buildRouteDots(polyline, interval) {
+    const dots = [];
+    if (polyline.length < 2) return dots;
+    let cursor = 0;
+    let traveled = 0;
+    for (let i = 0; i < polyline.length - 1; i++) {
+      const p1 = polyline[i];
+      const p2 = polyline[i + 1];
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const segLen = Math.sqrt(dx * dx + dy * dy);
+      while (cursor <= traveled + segLen) {
+        const t = (cursor - traveled) / segLen;
+        dots.push({
+          id: `d${dots.length}`,
+          style: `left:${p1.x + dx * t}%;top:${p1.y + dy * t}%;`
+        });
+        cursor += interval;
+      }
+      traveled += segLen;
+    }
+    const last = polyline[polyline.length - 1];
+    dots.push({ id: `d${dots.length}`, style: `left:${last.x}%;top:${last.y}%;` });
+    return dots;
   },
 
   _buildLegendItems() {
@@ -208,7 +407,7 @@ Page({
         this.planRoute();
         return;
       }
-      const target = POI_SEED.find((p) => p.name === f.title);
+      const target = POI_SEED.find((p) => p.name === f.title || (f.title && p.name.indexOf(f.title) >= 0));
       if (!target) {
         this.planRoute();
         return;
@@ -227,7 +426,7 @@ Page({
   },
 
   _initUserPositionByQr(options) {
-    let userPoiId = 1; // 默认东区入口
+    let userPoiId = 13;
     const rawScene = decodeURIComponent(options.scene || options.qr || "").trim().toLowerCase();
     if (rawScene) {
       const mapped = SCENE_TO_POI[rawScene];
@@ -246,7 +445,7 @@ Page({
   },
 
   _syncUserPosStyle() {
-    const p = this.poiMap[this.data.userPoiId];
+    const p = this.poiMap[this.data.userPoiId] || this.nodeMap[this.data.userPoiId];
     if (!p) return;
     this.setData({ userPosStyle: `left:${p.x}%;top:${p.y}%;` });
   },
@@ -271,7 +470,7 @@ Page({
     const poi = this.poiMap[id];
     if (!poi) return;
     if (this.data.activeLegendType !== "all" && poi.type !== this.data.activeLegendType) return;
-    this.setData({ showDetail: true, currentPoi: poi });
+    this._openPoiDetail(poi);
   },
 
   onLegendTap(e) {
@@ -347,9 +546,7 @@ Page({
     this.setData({
       isNavigating: true,
       navHint: `正在导航：${this.poiMap[this.data.startId].name} → ${this.poiMap[this.data.endId].name}`
-    }, () => {
-      this.planRoute();
-    });
+    }, () => this.planRoute());
   },
 
   stopNavigation() {
@@ -367,55 +564,60 @@ Page({
       wx.showToast({ title: "起终点相同", icon: "none" });
       return;
     }
-    const { path, edgeSet, distPercent } = this._dijkstra(start, end);
+    const { path, distPercent } = this._dijkstra(start, end);
     if (!path.length) {
       wx.showToast({ title: "当前无可达路径", icon: "none" });
       return;
     }
     this.routePath = path;
-    this.routePolyline = path.map((id) => ({ x: this.poiMap[id].x, y: this.poiMap[id].y }));
+    const polyline = this._expandPathToPolyline(path);
+    const smooth = smoothPolyline(polyline, 0.03);
+    this.routePolyline = smooth;
 
     const meters = Math.round(distPercent * METER_PER_PERCENT);
-    const minutes = Math.max(1, Math.round(meters / 75));
-    const text = path.map((id) => this.poiMap[id].name).join("  →  ");
+    const minutes = Math.max(1, Math.round(meters / 70));
+    const poiSteps = path.filter((id) => this.poiMap[id]).map((id) => this.poiMap[id].name);
+    const text = poiSteps.length ? poiSteps.join("  →  ") : path.map((id) => `#${id}`).join("  →  ");
     const pathSet = new Set(path.map((id) => String(id)));
     const poiList = this._decoratePoiList(pathSet, this.data.activeLegendType);
     this.setData({
       poiList,
-      roadSegments: this._buildRoadSegments(edgeSet),
+      roadSegments: this._buildRouteSegments(smooth),
+      routeDots: this._buildRouteDots(smooth, 1.5),
       routeText: text,
       routeMeters: meters,
       routeMinutes: minutes,
       hasRoute: true,
       navHint: this.data.isNavigating
         ? `正在导航：${this.poiMap[start].name} → ${this.poiMap[end].name}`
-        : "点击“开始导航”，高亮路线"
+        : "绿色线贴合园路弯道，点击「开始导航」"
     });
   },
 
   _dijkstra(start, end) {
+    const ids = Object.keys(this.nodeMap).map(Number);
     const dist = {};
     const prev = {};
     const visited = {};
-    POI_SEED.forEach((p) => {
-      dist[p.id] = Infinity;
-      prev[p.id] = null;
-      visited[p.id] = false;
+    ids.forEach((id) => {
+      dist[id] = Infinity;
+      prev[id] = null;
+      visited[id] = false;
     });
     dist[start] = 0;
 
     while (true) {
       let u = null;
       let best = Infinity;
-      POI_SEED.forEach((p) => {
-        if (!visited[p.id] && dist[p.id] < best) {
-          best = dist[p.id];
-          u = p.id;
+      ids.forEach((id) => {
+        if (!visited[id] && dist[id] < best) {
+          best = dist[id];
+          u = id;
         }
       });
       if (u === null || u === end) break;
       visited[u] = true;
-      this.adj[u].forEach((e) => {
+      (this.adj[u] || []).forEach((e) => {
         if (visited[e.to]) return;
         const nd = dist[u] + e.w;
         if (nd < dist[e.to]) {
@@ -434,56 +636,43 @@ Page({
       }
       path.reverse();
     }
-    const edgeSet = new Set();
-    for (let i = 1; i < path.length; i += 1) edgeSet.add(edgeKey(path[i - 1], path[i]));
-    return { path, edgeSet, distPercent: dist[end] === Infinity ? 0 : dist[end] };
+    return { path, distPercent: dist[end] === Infinity ? 0 : dist[end] };
   },
 
-  onMapTouchStart(e) {
-    const ts = e.touches || [];
-    if (ts.length === 1) {
-      this.gesture = {
-        type: "pan",
-        x: ts[0].pageX,
-        y: ts[0].pageY,
-        tx: this.camera.tx,
-        ty: this.camera.ty
-      };
-    } else if (ts.length >= 2) {
-      this.gesture = {
-        type: "pinch",
-        dist: touchDistance(ts[0], ts[1]),
-        scale: this.camera.scale,
-        tx: this.camera.tx,
-        ty: this.camera.ty
-      };
-    }
+  onZoomIn() {
+    const cx = this.viewport.w / 2;
+    const cy = this.viewport.h / 2;
+    this._zoomAt(cx, cy, 1.28);
   },
 
-  onMapTouchMove(e) {
-    const g = this.gesture;
-    if (!g) return;
-    const ts = e.touches || [];
-    if (g.type === "pan" && ts.length === 1) {
-      this.camera.tx = g.tx + (ts[0].pageX - g.x);
-      this.camera.ty = g.ty + (ts[0].pageY - g.y);
-      this._clampCamera();
-      this._updateSceneStyle();
-    } else if (g.type === "pinch" && ts.length >= 2) {
-      const d = touchDistance(ts[0], ts[1]);
-      const ratio = d / (g.dist || d);
-      this.camera.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, g.scale * ratio));
-      this._clampCamera();
-      this._updateSceneStyle();
-    }
+  onZoomOut() {
+    const cx = this.viewport.w / 2;
+    const cy = this.viewport.h / 2;
+    this._zoomAt(cx, cy, 1 / 1.28);
   },
 
-  onMapTouchEnd() {
-    this.gesture = null;
+  onZoomReset() {
+    this._fitFullMap(true);
+  },
+
+  _zoomAt(cx, cy, factor) {
+    const old = this.camera.scale;
+    const next = Math.max(this.minScale, Math.min(this.maxScale, old * factor));
+    const fx = (cx - this.camera.tx) / old;
+    const fy = (cy - this.camera.ty) / old;
+    this._pushMapCam({
+      scale: next,
+      tx: cx - fx * next,
+      ty: cy - fy * next
+    });
+  },
+
+  _fitFullMap(update) {
+    this._pushMapCam({ scale: this.fitScale, tx: 0, ty: 0 });
   },
 
   _centerOnPoi(id, update) {
-    const p = this.poiMap[id];
+    const p = this.poiMap[id] || this.nodeMap[id];
     if (!p) return;
     this._centerOnPercent(p.x, p.y, update);
   },
@@ -491,34 +680,37 @@ Page({
   _centerOnPercent(x, y, update) {
     const { w, h } = this.viewport;
     if (!w || !h) return;
-    const s = this.camera.scale;
+    const s = Math.max(this.camera.scale, 1.15);
     const px = (x / 100) * w;
     const py = (y / 100) * h;
-    this.camera.tx = w / 2 - px * s;
-    this.camera.ty = h / 2 - py * s;
-    this._clampCamera();
-    if (update) this._updateSceneStyle();
+    this._pushMapCam({
+      scale: s,
+      tx: w / 2 - px * s,
+      ty: h / 2 - py * s
+    });
   },
 
-  _clampCamera() {
+  _clampCamera(cam) {
     const { w, h } = this.viewport;
-    if (!w || !h) return;
-    const s = this.camera.scale;
+    if (!w || !h) return cam;
+    const ch = this.contentHeight || h;
+    const s = Math.max(this.minScale, Math.min(this.maxScale, cam.scale));
     const sw = w * s;
-    const sh = h * s;
-    const minX = w - sw;
-    const minY = h - sh;
-    const maxX = 0;
-    const maxY = 0;
-    this.camera.tx = Math.min(maxX, Math.max(minX, this.camera.tx));
-    this.camera.ty = Math.min(maxY, Math.max(minY, this.camera.ty));
-  },
-
-  _updateSceneStyle() {
-    const s = this.camera.scale;
-    const tx = this.camera.tx;
-    const ty = this.camera.ty;
-    this.setData({ sceneStyle: `transform: translate(${tx}px, ${ty}px) scale(${s});` });
+    const sh = ch * s;
+    let minX = w - sw;
+    let minY = h - sh;
+    let maxX = 0;
+    let maxY = 0;
+    if (sw <= w) {
+      minX = maxX = (w - sw) / 2;
+    }
+    if (sh <= h) {
+      minY = maxY = (h - sh) / 2;
+    }
+    cam.scale = s;
+    cam.tx = Math.min(maxX, Math.max(minX, cam.tx));
+    cam.ty = Math.min(maxY, Math.max(minY, cam.ty));
+    return cam;
   },
 
   goAiRoute() {

@@ -65,18 +65,20 @@ function request(url, options = {}) {
         }
         if (res.statusCode >= 200 && res.statusCode < 300) {
           if (body && typeof body.code !== "undefined" && body.code !== 0 && body.code !== 200) {
-            wx.showToast({ title: body.message || "请求失败", icon: "none" });
+            if (showFailToast) wx.showToast({ title: body.message || "请求失败", icon: "none" });
             reject(body);
             return;
           }
           resolve(body);
         } else {
-          let msg = (body && body.message) || "网络错误 " + res.statusCode;
-          if (res.statusCode === 404) {
-            msg =
-              "404 未找到接口。请检查接口根地址只填到端口，例如 http://IP:8000，不要带 /health 或 /api";
+          if (showFailToast) {
+            let msg = (body && body.message) || "网络错误 " + res.statusCode;
+            if (res.statusCode === 404) {
+              msg =
+                "404 未找到接口。请检查接口根地址只填到端口，例如 http://IP:8000，不要带 /health 或 /api";
+            }
+            wx.showToast({ title: msg, icon: "none", duration: 3500 });
           }
-          wx.showToast({ title: msg, icon: "none", duration: 3500 });
           reject(res);
         }
       },

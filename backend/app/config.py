@@ -44,6 +44,12 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4o-mini"
     allow_mock_llm: bool = True
 
+    # 和风天气 API（免费注册：https://dev.qweather.com）
+    qweather_api_key: str = ""
+    qweather_api_host: str = "https://devapi.qweather.com"
+    # 秦皇岛野生动物园坐标，格式 "经度,纬度"
+    qweather_location: str = "119.60,39.93"
+
 
 settings = Settings()
 

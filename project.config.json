@@ -18,7 +18,13 @@
   "compileType": "miniprogram",
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "backend" },
+      { "type": "folder", "value": "docs" },
+      { "type": "file", "value": "docker-compose.yml" },
+      { "type": "file", "value": "Dockerfile" },
+      { "type": "file", "value": "DEBUG.md" }
+    ],
     "include": []
   },
   "appid": "wxda0095bb63b100d8",

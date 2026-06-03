@@ -2,7 +2,7 @@
 <view class="page">
   <view class="banner">
     <block wx:if="{{bannerOk}}">
-      <image class="banner-img" src="/images/home-banner.png" mode="aspectFill" binderror="onBannerErr"></image>
+      <image class="banner-img" src="/images/home-banner.jpg" mode="aspectFill" binderror="onBannerErr"></image>
       <view class="banner-gradient"></view>
       <view class="banner-caption">
         <text class="banner-title">秦皇岛野生动物园</text>
@@ -18,6 +18,22 @@
   <view class="intro-card">
     <view class="intro-title">景区简介</view>
     <text class="intro-text">秦皇岛野生动物园位于北戴河新区，是中国最大的野生动物园之一，占地344公顷，饲养着东北虎、非洲狮等200余种、10000余头（只）野生动物，分为猛兽区、食草区、鸟类区等多个区域，是亲子游、科普游的首选之地。</text>
+  </view>
+
+  <view class="weather-card" wx:if="{{weatherItems.length > 0}}">
+    <view class="weather-header">
+      <text class="weather-title">逐时天气</text>
+      <text class="weather-sub">未来5小时</text>
+    </view>
+    <scroll-view class="weather-scroll" scroll-x enable-flex>
+      <view class="weather-hour" wx:for="{{weatherItems}}" wx:key="time">
+        <text class="wh-time">{{item.time}}</text>
+        <text class="wh-icon">{{item.icon}}</text>
+        <text class="wh-temp">{{item.temp}}</text>
+        <text class="wh-text">{{item.text}}</text>
+        <text class="wh-pop" wx:if="{{item.pop}}">💧{{item.pop}}</text>
+      </view>
+    </scroll-view>
   </view>
 
   <view class="grid">

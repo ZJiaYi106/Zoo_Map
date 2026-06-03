@@ -1,0 +1,178 @@
+/** 地图手势：视图层更新 transform，避免 touchmove 频繁 setData 卡顿 */
+var MIN_S = 0.35;
+var MAX_S = 4;
+
+function dist(t1, t2) {
+  var dx = t1.pageX - t2.pageX;
+  var dy = t1.pageY - t2.pageY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function clamp(v, lo, hi) {
+  return v < lo ? lo : v > hi ? hi : v;
+}
+
+function readLimits(e, st) {
+  var ds = e.currentTarget.dataset;
+  if (ds && ds.minScale) st.minScale = +ds.minScale;
+  if (ds && ds.maxScale) st.maxScale = +ds.maxScale;
+  if (ds && ds.vw) st.vw = +ds.vw;
+  if (ds && ds.vh) st.vh = +ds.vh;
+  if (ds && ds.ch) st.ch = +ds.ch;
+}
+
+function applyTransform(ownerInstance, tx, ty, scale) {
+  var st = ownerInstance.getState();
+  st.tx = tx;
+  st.ty = ty;
+  st.scale = scale;
+  var ins = ownerInstance.selectComponent("#mapScene");
+  if (!ins) return;
+  ins.setStyle({
+    transform: "translate3d(" + tx + "px," + ty + "px,0) scale(" + scale + ")",
+    "transform-origin": "0 0",
+    "will-change": "transform"
+  });
+}
+
+function clampView(st, tx, ty, scale) {
+  var vw = st.vw || 0;
+  var vh = st.vh || 0;
+  var ch = st.ch || vh;
+  if (!vw || !vh) return { tx: tx, ty: ty, scale: scale };
+  var sw = vw * scale;
+  var sh = ch * scale;
+  var minX = vw - sw;
+  var minY = vh - sh;
+  var maxX = 0;
+  var maxY = 0;
+  if (sw <= vw) {
+    minX = maxX = (vw - sw) / 2;
+  }
+  if (sh <= vh) {
+    minY = maxY = (vh - sh) / 2;
+  }
+  return {
+    tx: clamp(tx, minX, maxX),
+    ty: clamp(ty, minY, maxY),
+    scale: scale
+  };
+}
+
+function touchStart(e, ownerInstance) {
+  var st = ownerInstance.getState();
+  readLimits(e, st);
+  var ds = e.currentTarget.dataset;
+  if (ds) {
+    if (ds.tx != null) st.tx = +ds.tx;
+    if (ds.ty != null) st.ty = +ds.ty;
+    if (ds.scale != null) st.scale = +ds.scale;
+  }
+  var touches = e.touches;
+  if (!touches || !touches.length) return;
+  if (touches.length >= 2) {
+    st.mode = "pinch";
+    st.pinchDist = dist(touches[0], touches[1]);
+    st.pinchScale = st.scale || 1;
+    st.pinchTx = st.tx || 0;
+    st.pinchTy = st.ty || 0;
+    st.pinchCx = (touches[0].pageX + touches[1].pageX) / 2;
+    st.pinchCy = (touches[0].pageY + touches[1].pageY) / 2;
+    return;
+  }
+  st.mode = "pan";
+  st.panX = touches[0].pageX;
+  st.panY = touches[0].pageY;
+  st.panTx = st.tx || 0;
+  st.panTy = st.ty || 0;
+}
+
+function touchMove(e, ownerInstance) {
+  var st = ownerInstance.getState();
+  var touches = e.touches;
+  if (!touches || !touches.length) return;
+  var minS = st.minScale || MIN_S;
+  var maxS = st.maxScale || MAX_S;
+
+  if (touches.length >= 2) {
+    var d = dist(touches[0], touches[1]);
+    if (!st.pinchDist) {
+      st.pinchDist = d;
+      st.pinchScale = st.scale || 1;
+      st.pinchTx = st.tx || 0;
+      st.pinchTy = st.ty || 0;
+    }
+    var ratio = d / st.pinchDist;
+    var newScale = clamp(st.pinchScale * ratio, minS, maxS);
+    var cx = (touches[0].pageX + touches[1].pageX) / 2;
+    var cy = (touches[0].pageY + touches[1].pageY) / 2;
+    var fx = (st.pinchCx - st.pinchTx) / st.pinchScale;
+    var fy = (st.pinchCy - st.pinchTy) / st.pinchScale;
+    var tx = cx - fx * newScale;
+    var ty = cy - fy * newScale;
+    var c = clampView(st, tx, ty, newScale);
+    applyTransform(ownerInstance, c.tx, c.ty, c.scale);
+    return;
+  }
+
+  if (st.mode === "pan" && touches.length === 1) {
+    var dx = touches[0].pageX - st.panX;
+    var dy = touches[0].pageY - st.panY;
+    var c2 = clampView(st, st.panTx + dx, st.panTy + dy, st.scale || 1);
+    applyTransform(ownerInstance, c2.tx, c2.ty, c2.scale);
+  }
+}
+
+function touchEnd(e, ownerInstance) {
+  var st = ownerInstance.getState();
+  var taps = e.changedTouches;
+  if (st.mode === "pan" && taps && taps.length === 1) {
+    var dx = taps[0].pageX - (st.panX || 0);
+    var dy = taps[0].pageY - (st.panY || 0);
+    if (dx * dx + dy * dy < 100) {
+      ownerInstance.callMethod("onMapTapAt", {
+        x: taps[0].pageX,
+        y: taps[0].pageY
+      });
+    }
+  }
+  st.mode = "";
+  st.pinchDist = 0;
+  ownerInstance.callMethod("syncMapCamera", {
+    tx: st.tx || 0,
+    ty: st.ty || 0,
+    scale: st.scale || 1
+  });
+}
+
+function initCamera(e, ownerInstance) {
+  var st = ownerInstance.getState();
+  readLimits(e, st);
+  var ds = e.currentTarget.dataset;
+  var tx = ds && ds.tx ? +ds.tx : 0;
+  var ty = ds && ds.ty ? +ds.ty : 0;
+  var scale = ds && ds.scale ? +ds.scale : 1;
+  var c = clampView(st, tx, ty, scale);
+  applyTransform(ownerInstance, c.tx, c.ty, c.scale);
+}
+
+function onGestureData(newVal, oldVal, ownerInstance) {
+  if (!newVal || !newVal.ready) return;
+  var st = ownerInstance.getState();
+  st.minScale = newVal.minScale || MIN_S;
+  st.maxScale = newVal.maxScale || MAX_S;
+  st.vw = newVal.vw;
+  st.vh = newVal.vh;
+  st.ch = newVal.ch;
+  var c = clampView(st, newVal.tx || 0, newVal.ty || 0, newVal.scale || 1);
+  applyTransform(ownerInstance, c.tx, c.ty, c.scale);
+}
+
+module.exports = {
+  touchStart: touchStart,
+  touchMove: touchMove,
+  touchEnd: touchEnd,
+  touchCancel: touchEnd,
+  initCamera: initCamera,
+  onGestureData: onGestureData
+};

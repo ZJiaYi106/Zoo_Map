@@ -2,11 +2,13 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #eef2ef;
+  background: #e8f0e6;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .nav-bar {
+  flex-shrink: 0;
   margin: 14rpx 16rpx 0;
   padding: 14rpx 18rpx;
   font-size: 24rpx;
@@ -21,6 +23,7 @@
 }
 
 .planner {
+  flex-shrink: 0;
   display: flex;
   gap: 12rpx;
   padding: 16rpx;
@@ -35,108 +38,131 @@
   font-size: 25rpx;
 }
 
+.map-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 48vh;
+  margin: 0 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .inner-map {
-  margin: 0 16rpx;
   position: relative;
   border-radius: 18rpx;
   overflow: hidden;
-  background: linear-gradient(180deg, #eef5f2, #e5efe9);
-  border: 1rpx solid #d8e8e2;
-  height: 0;
-  padding-top: 100%;
-}
-
-.map-wrap {
-  position: relative;
+  background: #d4e8d0;
+  border: 1rpx solid #b8d4b2;
+  box-shadow: 0 8rpx 24rpx rgba(45, 90, 60, 0.12);
+  touch-action: none;
 }
 
 .scene {
   position: absolute;
-  inset: 0;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
   transform-origin: 0 0;
+  will-change: transform;
 }
 
-.grid-bg {
+.map-gesture-layer {
   position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(to right, rgba(45, 107, 90, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(45, 107, 90, 0.08) 1px, transparent 1px);
-  background-size: 12.5% 12.5%;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 
-.zone {
+.zoom-bar {
   position: absolute;
-  border-radius: 20rpx;
-  opacity: 0.65;
+  right: 12rpx;
+  bottom: 12rpx;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.zoom-btn {
+  width: 52rpx;
+  height: 52rpx;
+  line-height: 52rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #2d6b5a;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1rpx solid #c5dbd2;
+  border-radius: 12rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.zoom-btn:active {
+  background: #e8f2ee;
+}
+
+.map-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
   z-index: 0;
-  border: 1rpx solid rgba(45, 107, 90, 0.2);
-}
-
-.zone-beast { background: #f4d9d3; }
-.zone-herb { background: #dff0d6; }
-.zone-bird { background: #d8e7fa; }
-.zone-service { background: #f9eec9; }
-
-.zone-label {
-  position: absolute;
-  left: 10rpx;
-  top: 6rpx;
-  font-size: 18rpx;
-  color: #587168;
+  pointer-events: none;
+  display: block;
 }
 
 .road {
   position: absolute;
   height: 6rpx;
-  background: #a8bbb2;
-  border-radius: 999rpx;
   transform-origin: 0 50%;
-  z-index: 2;
-  opacity: 0.42;
-}
-
-/* 未规划路线时普通路稍明显一点 */
-.road:not(.on-route) {
-  filter: grayscale(12%);
+  z-index: 3;
+  border-radius: 999rpx;
+  opacity: 0.95;
+  pointer-events: none;
 }
 
 .road.on-route {
-  opacity: 1;
-  height: 20rpx;
-  z-index: 8;
-  border-radius: 999rpx;
-  border: 3rpx solid #fff;
-  background: linear-gradient(180deg, #ffe082 0%, #ff9800 45%, #f57c00 100%);
+  height: 4rpx;
+  z-index: 5;
+  border-radius: 0;
+  border: none;
+  background: linear-gradient(90deg, #7ecf9d 0%, #52b878 50%, #7ecf9d 100%);
   box-shadow:
-    0 0 0 3rpx rgba(255, 152, 0, 0.55),
-    0 8rpx 20rpx rgba(245, 124, 0, 0.48);
-  filter: none;
+    0 0 3rpx rgba(82, 184, 120, 0.35),
+    0 1rpx 2rpx rgba(82, 184, 120, 0.2);
 }
 
-/* 导航进行中：路线更醒目 */
-.road.on-route.route-nav {
-  animation: routeLinePulse 1.6s ease-in-out infinite;
-}
-
-@keyframes routeLinePulse {
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 3rpx rgba(255, 152, 0, 0.55),
-      0 8rpx 20rpx rgba(245, 124, 0, 0.48);
-  }
-  50% {
-    box-shadow:
-      0 0 0 6rpx rgba(255, 193, 7, 0.75),
-      0 10rpx 28rpx rgba(255, 111, 0, 0.62);
-  }
+.route-dot {
+  position: absolute;
+  width: 6rpx;
+  height: 6rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 3rpx rgba(255, 255, 255, 0.7);
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  pointer-events: none;
 }
 
 .poi {
   position: absolute;
   transform: translate(-50%, -50%);
-  z-index: 10;
+  z-index: 12;
+  min-width: 16rpx;
+}
+
+.poi-hit {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 56rpx;
+  height: 56rpx;
+  transform: translate(-50%, -50%);
+  z-index: 0;
 }
 
 .poi.is-hidden {
@@ -145,42 +171,35 @@
 }
 
 .dot {
-  width: 18rpx;
-  height: 18rpx;
+  position: relative;
+  z-index: 1;
+  width: 12rpx;
+  height: 12rpx;
   border-radius: 50%;
-  border: 2rpx solid rgba(255, 255, 255, 0.9);
-  background: #2d6b5a;
-  margin: 0 auto 6rpx;
+  border: 2rpx solid #fff;
+  background: #2e7d32;
+  margin: 0 auto 2rpx;
+  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.18);
 }
 
 .poi.on-route .dot {
-  width: 22rpx;
-  height: 22rpx;
-  border-width: 3rpx;
-  box-shadow: 0 0 0 6rpx rgba(255, 152, 0, 0.42);
+  width: 14rpx;
+  height: 14rpx;
+  border-width: 2rpx;
+  box-shadow: 0 0 0 4rpx rgba(82, 184, 120, 0.32);
   z-index: 1;
 }
 
-.poi.on-route.route-pulse .dot {
-  animation: poiRoutePulse 1.6s ease-in-out infinite;
-}
-
-@keyframes poiRoutePulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 6rpx rgba(255, 152, 0, 0.42);
-  }
-  50% {
-    box-shadow: 0 0 0 10rpx rgba(255, 193, 7, 0.55);
-  }
-}
-
 .poi.start .dot {
+  width: 14rpx;
+  height: 14rpx;
   border-color: #1e7d32;
   background: #1e7d32;
 }
 
 .poi.end .dot {
+  width: 14rpx;
+  height: 14rpx;
   border-color: #e65100;
   background: #e65100;
 }
@@ -194,42 +213,45 @@
 .poi.type-rest .dot { background: #546e7a; }
 
 .label {
-  font-size: 18rpx;
+  font-size: 16rpx;
   color: #2d3b36;
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 8rpx;
-  padding: 2rpx 8rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 6rpx;
+  padding: 1rpx 6rpx;
   white-space: nowrap;
-  max-width: 160rpx;
+  max-width: 140rpx;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.25;
+  transform: scale(0.92);
+  transform-origin: center top;
 }
 
 .poi.on-route .label {
-  border: 2rpx solid rgba(255, 152, 0, 0.55);
-  background: rgba(255, 248, 225, 0.98);
-  color: #5d4037;
+  border: 1rpx solid rgba(82, 184, 120, 0.45);
+  background: rgba(236, 252, 242, 0.96);
+  color: #2d6b4a;
   font-weight: 600;
 }
 
 .user-pos {
   position: absolute;
   transform: translate(-50%, -50%);
-  z-index: 6;
+  z-index: 12;
 }
 
 .user-pos-dot {
-  width: 18rpx;
-  height: 18rpx;
+  width: 14rpx;
+  height: 14rpx;
   border-radius: 50%;
   background: #1677ff;
-  border: 3rpx solid #fff;
-  box-shadow: 0 0 0 8rpx rgba(22, 119, 255, 0.22);
-  margin: 0 auto 8rpx;
+  border: 2rpx solid #fff;
+  box-shadow: 0 0 0 5rpx rgba(22, 119, 255, 0.2);
+  margin: 0 auto 4rpx;
 }
 
 .user-pos-label {
-  font-size: 20rpx;
+  font-size: 16rpx;
   color: #0f4ea8;
   background: rgba(255, 255, 255, 0.94);
   border: 1rpx solid rgba(22, 119, 255, 0.35);
@@ -239,10 +261,13 @@
 }
 
 .legend-box {
-  margin: 12rpx 16rpx 0;
+  flex-shrink: 0;
+  margin: 8rpx 12rpx 0;
   background: #fff;
-  border-radius: 14rpx;
-  padding: 12rpx 14rpx;
+  border-radius: 12rpx;
+  padding: 8rpx 12rpx;
+  max-height: 22vh;
+  overflow-y: auto;
 }
 
 .legend-title {
@@ -257,9 +282,9 @@
   gap: 12rpx;
   margin: 0 0 12rpx;
   padding: 10rpx 12rpx;
-  background: linear-gradient(90deg, rgba(255, 193, 7, 0.12), rgba(255, 152, 0, 0.06));
+  background: linear-gradient(90deg, rgba(82, 184, 120, 0.10), rgba(130, 210, 160, 0.06));
   border-radius: 10rpx;
-  border: 1rpx solid rgba(255, 152, 0, 0.35);
+  border: 1rpx solid rgba(82, 184, 120, 0.3);
 }
 
 .route-line-swatch {
@@ -267,14 +292,14 @@
   width: 48rpx;
   height: 14rpx;
   border-radius: 999rpx;
-  border: 2rpx solid #fff;
-  background: linear-gradient(180deg, #ffe082 0%, #ff9800 50%, #f57c00 100%);
-  box-shadow: 0 2rpx 8rpx rgba(245, 124, 0, 0.45);
+  border: none;
+  background: linear-gradient(90deg, #7ecf9d 0%, #52b878 50%, #7ecf9d 100%);
+  box-shadow: 0 2rpx 8rpx rgba(82, 184, 120, 0.35);
 }
 
 .route-line-legend-text {
   font-size: 20rpx;
-  color: #795548;
+  color: #3d6b4f;
   line-height: 1.4;
   flex: 1;
 }
@@ -335,6 +360,7 @@
 
 
 .route-box {
+  flex-shrink: 0;
   margin: 14rpx 16rpx 0;
   background: #fff;
   border-radius: 14rpx;
@@ -396,6 +422,7 @@
 }
 
 .toolbar {
+  flex-shrink: 0;
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;

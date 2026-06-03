@@ -1,25 +1,8 @@
 // pages/scenic/scenic.js — 景点列表、筛选、AI 讲解、收藏
 const { request } = require("../../utils/request.js");
+const { resolveScenicImage, FALLBACK } = require("../../utils/scenicImage.js");
 
-const PLACEHOLDER_IMG =
-  "https://dummyimage.com/750x400/2D6B5A/ffffff.png&text=QHD+Zoo";
-
-/** 景点名 -> 本地封面（小程序包内图片）；优先于接口返回的 image */
-const LOCAL_COVER_BY_NAME = {
-  "猛兽区观景台": "/images/scenic-beast-deck.png",
-  "狮虎园": "/images/scenic-lion-yard.png",
-  "食草动物区": "/images/scenic-herbivore-zone.png",
-  "长颈鹿互动广场": "/images/scenic-giraffe-plaza.png",
-  "鸟类表演场": "/images/scenic-bird-show.png",
-  "水禽湖": "/images/scenic-waterfowl-lake.png"
-};
-
-function resolveScenicImage(item) {
-  const local = LOCAL_COVER_BY_NAME[item.name];
-  if (local) return local;
-  const remote = item.image && String(item.image).trim();
-  return remote || PLACEHOLDER_IMG;
-}
+const PLACEHOLDER_IMG = FALLBACK;
 
 Page({
   data: {
