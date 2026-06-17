@@ -5,24 +5,24 @@
  */
 
 const MAP_IMAGE = "/images/park-map.png";
-/** 底图宽高比 width/height，getImageInfo 失败时使用 */
-const MAP_ASPECT_FALLBACK = 0.71;
+/** 底图宽高比 width/height，getImageInfo 失败时使用，5.7:6.3 竖版 */
+const MAP_ASPECT_FALLBACK = 5.7 / 6.3;
 const METER_PER_PERCENT = 11;
 
 /** 游客可选 POI（已按导览图标注位置校验） */
 const POI_SEED = [
   { id: 1, name: "售票处", intro: "购票入园，可在此领取纸质导览图。", type: "service", x: 14, y: 76 },
-  { id: 2, name: "游客中心", intro: "咨询、寄存、失物招领与便民服务。", type: "service", x: 26, y: 73 },
-  { id: 3, name: "中心广场", intro: "园区中枢广场，可换乘各主题园路。", type: "scenic", x: 43, y: 63 },
-  { id: 4, name: "避险处", intro: "应急避险与临时庇护点。", type: "service", x: 47, y: 57 },
-  { id: 5, name: "狮园", intro: "观赏狮子等猛兽，请沿步道参观勿投喂。", type: "scenic", x: 18, y: 30 },
-  { id: 6, name: "鹤园", intro: "丹顶鹤等水禽栖息展示，宜保持安静。", type: "scenic", x: 40, y: 11 },
-  { id: 7, name: "百鹅湖", intro: "湖面开阔，适合观鸟、休憩与拍照。", type: "scenic", x: 54, y: 23 },
-  { id: 8, name: "雉鸡园", intro: "雉鸡及山地鸟类展示区域。", type: "scenic", x: 76, y: 9 },
+  { id: 2, name: "游客中心", intro: "咨询、寄存、失物招领与便民服务。", type: "service", x: 38.72, y: 83.96 },
+  { id: 3, name: "中心广场", intro: "园区中枢广场，可换乘各主题园路。", type: "scenic", x: 42.71, y: 72.82 },
+  { id: 4, name: "避险处", intro: "应急避险与临时庇护点。", type: "service", x: 42.23, y: 65.53 },
+  { id: 5, name: "狮园", intro: "观赏狮子等猛兽，请沿步道参观勿投喂。", type: "scenic", x: 14.1, y: 46.31 },
+  { id: 6, name: "鹤园", intro: "丹顶鹤等水禽栖息展示，宜保持安静。", type: "scenic", x: 36.94, y: 34.09 },
+  { id: 7, name: "百鹅湖", intro: "湖面开阔，适合观鸟、休憩与拍照。", type: "scenic", x: 65, y: 32 },
+  { id: 8, name: "雉鸡园", intro: "雉鸡及山地鸟类展示区域。", type: "scenic", x: 86.38, y: 33.66 },
   { id: 9, name: "东南门", intro: "园区东南侧出入口。", type: "gate", x: 83, y: 40 },
-  { id: 10, name: "东南中", intro: "东南片区步道交汇点。", type: "rest", x: 74, y: 50 },
-  { id: 11, name: "非洲部落", intro: "非洲风情主题展示区。", type: "scenic", x: 71, y: 68 },
-  { id: 12, name: "青竹雅苑", intro: "竹林休憩与竹文化体验。", type: "scenic", x: 64, y: 79 },
+  { id: 10, name: "东南中", intro: "东南片区步道交汇点。", type: "rest", x: 79.42, y: 54.35 },
+  { id: 11, name: "非洲部落", intro: "非洲风情主题展示区。", type: "scenic", x: 82.6, y: 77 },
+  { id: 12, name: "青竹雅苑", intro: "竹林休憩与竹文化体验。", type: "scenic", x: 95.06, y: 77.57 },
   { id: 13, name: "主入口（S364）", intro: "沿 S364 抵达的主入口，建议先看导览。", type: "gate", x: 10, y: 86 },
   { id: 14, name: "观海平台", intro: "近海滨沙滩，可远眺海岸线。", type: "view", x: 87, y: 85 }
 ];

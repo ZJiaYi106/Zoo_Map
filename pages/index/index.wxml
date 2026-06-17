@@ -4,6 +4,7 @@
     <block wx:if="{{bannerOk}}">
       <image class="banner-img" src="/images/home-banner.jpg" mode="aspectFill" binderror="onBannerErr"></image>
       <view class="banner-gradient"></view>
+      <view class="banner-pattern"></view>
       <view class="banner-caption">
         <text class="banner-title">秦皇岛野生动物园</text>
         <text class="banner-sub">AI 智能导览</text>
@@ -31,7 +32,7 @@
         <text class="wh-icon">{{item.icon}}</text>
         <text class="wh-temp">{{item.temp}}</text>
         <text class="wh-text">{{item.text}}</text>
-        <text class="wh-pop" wx:if="{{item.pop}}">💧{{item.pop}}</text>
+        <text class="wh-pop" wx:if="{{item.pop}}">{{item.pop}}</text>
       </view>
     </scroll-view>
   </view>
@@ -43,7 +44,7 @@
     </view>
     <view class="grid-item" bindtap="goAi">
       <image class="grid-icon" src="/images/icons/ai.svg" mode="aspectFit" />
-      <text class="grid-label">AI导览</text>
+      <text class="grid-label">AI 导览</text>
     </view>
     <view class="grid-item" bindtap="goScenic">
       <image class="grid-icon" src="/images/icons/scenic.svg" mode="aspectFit" />

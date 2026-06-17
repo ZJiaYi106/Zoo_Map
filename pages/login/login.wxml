@@ -1,6 +1,8 @@
 <view class="login-page">
   <view class="logo-wrap">
-    <image class="logo-img" src="/images/icons/login-logo.svg" mode="aspectFit" />
+    <view class="logo-ring">
+      <image class="logo-img" src="/images/icons/login-logo.svg" mode="aspectFit" />
+    </view>
     <text class="logo-name">秦皇岛野生动物园</text>
     <text class="logo-sub">AI 智能导览</text>
   </view>

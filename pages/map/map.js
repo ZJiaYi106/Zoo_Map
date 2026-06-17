@@ -75,6 +75,8 @@ Page({
     routeMinutes: 0,
     isNavigating: false,
     navHint: "",
+    navHintShort: "沿园路步行",
+    legendOpen: false,
     sceneStyle: "transform: translate3d(0px, 0px, 0) scale(1);",
     mapViewportStyle: "",
     mapCam: { ready: 0, vw: 0, vh: 0, ch: 0, minScale: 1, maxScale: 3, tx: 0, ty: 0, scale: 1 },
@@ -83,7 +85,10 @@ Page({
     userPosStyle: "",
     legendItems: [],
     activeLegendType: "all",
-    legendPoiList: []
+    legendPoiList: [],
+    coordX: 0,
+    coordY: 0,
+    showCoord: false
   },
 
   onLoad(options) {
@@ -106,15 +111,14 @@ Page({
       roadSegments: [],
       poiNames: POI_SEED.map((p) => p.name),
       legendItems: this._buildLegendItems(),
-      navHint: "沿米色园路步行，绿色线为推荐路线"
+      navHint: "沿米色园路步行，绿色线为推荐路线",
+      navHintShort: "沿园路步行"
     });
 
     this._initUserPositionByQr(options || {});
 
     if (options.from === "facility") {
       this._applyMapFocus();
-    } else {
-      this.planRoute();
     }
   },
 
@@ -158,27 +162,17 @@ Page({
       }
       const win = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
       const winH = win.windowHeight || 640;
-      const margin = 12;
+      const margin = 4;
       const availW = wrap.width - margin;
-      let availH = Math.max(wrap.height, winH * 0.48) - 8;
+      let availH = Math.max(wrap.height, winH * 0.58) - 6;
       const aspect = this.mapAspect || MAP_ASPECT_FALLBACK;
       let mapW;
       let mapH;
-      /* 竖版导览图：优先占满可视高度，宽度按比例收缩，两侧留白 */
-      if (aspect < 0.9) {
+      mapW = availW;
+      mapH = mapW / aspect;
+      if (mapH > availH) {
         mapH = availH;
         mapW = mapH * aspect;
-        if (mapW > availW) {
-          mapW = availW;
-          mapH = mapW / aspect;
-        }
-      } else {
-        mapW = availW;
-        mapH = mapW / aspect;
-        if (mapH > availH) {
-          mapH = availH;
-          mapW = mapH * aspect;
-        }
       }
       this.viewport = { w: mapW, h: mapH };
       this.contentHeight = mapH;
@@ -246,16 +240,25 @@ Page({
     const px = Number(e.x);
     const py = Number(e.y);
     if (!px && !py) return;
+    const { w, h } = this.viewport;
+    if (!w || !h) return;
     const q = wx.createSelectorQuery();
-    q.select("#mapScene").boundingClientRect();
+    q.select("#mapViewport").boundingClientRect();
     q.exec((res) => {
-      const rect = res && res[0];
-      if (!rect || !rect.width || !rect.height) return;
+      const vp = res && res[0];
+      if (!vp) return;
       const s = this.camera.scale || 1;
-      const lx = (px - rect.left - (this.camera.tx || 0)) / s;
-      const ly = (py - rect.top - (this.camera.ty || 0)) / s;
-      const pctX = (lx / rect.width) * 100;
-      const pctY = (ly / rect.height) * 100;
+      const tx = this.camera.tx || 0;
+      const ty = this.camera.ty || 0;
+      const sx = (px - vp.left - tx) / s;
+      const sy = (py - vp.top - ty) / s;
+      const pctX = (sx / w) * 100;
+      const pctY = (sy / h) * 100;
+      const rx = Math.round(pctX * 100) / 100;
+      const ry = Math.round(pctY * 100) / 100;
+      this.setData({ coordX: rx, coordY: ry, showCoord: true });
+      if (this._coordTimer) clearTimeout(this._coordTimer);
+      this._coordTimer = setTimeout(() => this.setData({ showCoord: false }), 4000);
       let hit = null;
       let best = 8;
       POI_SEED.forEach((p) => {
@@ -404,12 +407,10 @@ Page({
       const f = wx.getStorageSync("mapFocus");
       wx.removeStorageSync("mapFocus");
       if (!f || !f.title) {
-        this.planRoute();
         return;
       }
       const target = POI_SEED.find((p) => p.name === f.title || (f.title && p.name.indexOf(f.title) >= 0));
       if (!target) {
-        this.planRoute();
         return;
       }
       const endIndex = POI_SEED.findIndex((p) => p.id === target.id);
@@ -471,6 +472,10 @@ Page({
     if (!poi) return;
     if (this.data.activeLegendType !== "all" && poi.type !== this.data.activeLegendType) return;
     this._openPoiDetail(poi);
+  },
+
+  onToggleLegend() {
+    this.setData({ legendOpen: !this.data.legendOpen });
   },
 
   onLegendTap(e) {
@@ -535,24 +540,49 @@ Page({
       endId: id,
       endIndex: idx < 0 ? this.data.endIndex : idx,
       showDetail: false
-    }, () => this.startNavigation());
+    }, () => {
+      this.planRoute();
+      this.startNavigation();
+    });
   },
 
   startNavigation() {
-    if (!this.data.hasRoute || this.routePath.length < 2) {
-      wx.showToast({ title: "请先规划路线", icon: "none" });
+    if (this.routePath.length < 2) {
+      this.planRoute();
+    }
+    if (this.routePath.length < 2) {
+      wx.showToast({ title: "请先选择起点和终点", icon: "none" });
       return;
     }
     this.setData({
       isNavigating: true,
-      navHint: `正在导航：${this.poiMap[this.data.startId].name} → ${this.poiMap[this.data.endId].name}`
+      navHint: `正在导航：${this.poiMap[this.data.startId].name} → ${this.poiMap[this.data.endId].name}`,
+      navHintShort: '导航中'
     }, () => this.planRoute());
   },
 
   stopNavigation() {
     this.setData({
       isNavigating: false,
-      navHint: "导航已结束，可重新选择起终点"
+      navHint: "导航已结束，可重新选择起终点",
+      navHintShort: "沿园路步行"
+    });
+  },
+
+  clearRoute() {
+    this.routePath = [];
+    this.routePolyline = [];
+    this.setData({
+      roadSegments: [],
+      routeDots: [],
+      hasRoute: false,
+      routeText: "未规划路线",
+      routeMeters: 0,
+      routeMinutes: 0,
+      isNavigating: false,
+      navHint: "路线已清除，请选择起终点后点击「开始导航」",
+      navHintShort: "沿园路步行",
+      poiList: this._decoratePoiList(new Set(), this.data.activeLegendType)
     });
   },
 
@@ -590,7 +620,8 @@ Page({
       hasRoute: true,
       navHint: this.data.isNavigating
         ? `正在导航：${this.poiMap[start].name} → ${this.poiMap[end].name}`
-        : "绿色线贴合园路弯道，点击「开始导航」"
+        : "绿色线贴合园路弯道，点击「开始导航」",
+      navHintShort: this.data.isNavigating ? '导航中' : '沿园路步行'
     });
   },
 

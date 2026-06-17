@@ -2,49 +2,63 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f5f5f5;
+  background:
+    radial-gradient(ellipse 50% 30% at 50% 0%, rgba(27, 67, 50, 0.02) 0%, transparent 70%),
+    #F6F3ED;
 }
 
+/* === 分类标签 === */
 .cats {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  padding: 16rpx;
-  gap: 12rpx;
-  background: #fff;
+  padding: 16rpx 20rpx;
+  gap: 10rpx;
+  background: transparent;
+  flex-shrink: 0;
 }
 
 .cat {
   flex: 1;
-  min-width: 22%;
+  min-width: 20%;
   text-align: center;
   padding: 18rpx 8rpx;
   font-size: 26rpx;
-  border-radius: 12rpx;
-  background: #f0f0f0;
-  color: #666;
+  border-radius: 14rpx;
+  background: #FFFFFF;
+  color: #6B5F50;
+  font-weight: 500;
+  box-shadow: 0 1rpx 4rpx rgba(44, 34, 24, 0.03);
+  border: 1rpx solid #E6DED2;
 }
 
 .cat.on {
-  background: #2d6b5a;
+  background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 100%);
   color: #fff;
+  font-weight: 700;
+  border-color: transparent;
+  box-shadow: 0 4rpx 14rpx rgba(27, 67, 50, 0.2);
 }
 
+/* === 列表 === */
 .list {
   flex: 1;
   height: 0;
-  padding: 16rpx;
+  padding: 8rpx 20rpx 20rpx;
 }
 
+/* === 设施行 === */
 .row {
   display: flex;
   flex-direction: row;
   align-items: center;
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 24rpx;
+  background: #FFFFFF;
+  border-radius: 18rpx;
+  padding: 26rpx 24rpx;
   margin-bottom: 16rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 3rpx 14rpx rgba(44, 34, 24, 0.04),
+    0 1rpx 0 rgba(44, 34, 24, 0.02);
 }
 
 .info {
@@ -54,33 +68,43 @@
 
 .name {
   font-size: 30rpx;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 8rpx;
+  color: #2C2218;
 }
 
 .sub {
   font-size: 24rpx;
-  color: #888;
-  line-height: 1.4;
+  color: #6B5F50;
+  line-height: 1.45;
 }
 
+/* === 导航按钮 === */
 .nav-btn {
   width: 140rpx !important;
-  height: 64rpx !important;
-  line-height: 64rpx !important;
-  border-radius: 32rpx !important;
-  background: #2d6b5a !important;
+  height: 68rpx !important;
+  line-height: 68rpx !important;
+  border-radius: 34rpx !important;
+  background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 100%) !important;
   color: #fff !important;
   font-size: 26rpx !important;
   padding: 0 !important;
+  font-weight: 600;
+  box-shadow: 0 4rpx 14rpx rgba(27, 67, 50, 0.2);
 }
 
 .nav-btn::after {
   border: none !important;
 }
 
+.nav-btn:active {
+  opacity: 0.85 !important;
+}
+
+/* === 空状态 === */
 .empty {
   text-align: center;
-  color: #999;
-  padding: 80rpx 0;
+  color: #A69780;
+  padding: 100rpx 0;
+  font-size: 28rpx;
 }

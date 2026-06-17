@@ -1,19 +1,18 @@
 <!-- 地图导航页：海滨国家森林公园手绘导览图 -->
 <wxs src="./map-gesture.wxs" module="gesture" />
 <view class="map-page">
-  <view class="nav-bar {{isNavigating?'on':''}}">
-    <text>{{navHint}}</text>
-  </view>
-
-  <view class="planner">
+  <!-- 顶部合并栏：状态提示 + 起终点选择 -->
+  <view class="map-header">
+    <text class="nav-hint {{isNavigating?'on':''}}">{{navHintShort}}</text>
     <picker mode="selector" range="{{poiNames}}" value="{{startIndex}}" bindchange="onStartChange">
-      <view class="picker">起点：{{poiNames[startIndex]}}</view>
+      <view class="picker">起: {{poiNames[startIndex]}}</view>
     </picker>
     <picker mode="selector" range="{{poiNames}}" value="{{endIndex}}" bindchange="onEndChange">
-      <view class="picker">终点：{{poiNames[endIndex]}}</view>
+      <view class="picker">终: {{poiNames[endIndex]}}</view>
     </picker>
   </view>
 
+  <!-- 地图视口 -->
   <view class="map-wrap">
     <view
       id="mapViewport"
@@ -59,22 +58,26 @@
         </block>
         <view class="user-pos" style="{{userPosStyle}}">
           <view class="user-pos-dot"></view>
-          <text class="user-pos-label">您当前所在的位置</text>
+          <text class="user-pos-label">我在这里</text>
         </view>
       </view>
+      <view class="coord-tip {{showCoord ? 'on' : ''}}">x: {{coordX}} &nbsp; y: {{coordY}}</view>
       <view class="zoom-bar">
         <view class="zoom-btn" catchtap="onZoomOut">−</view>
-        <view class="zoom-btn" catchtap="onZoomReset">全图</view>
+        <view class="zoom-btn" catchtap="onZoomReset">全</view>
         <view class="zoom-btn" catchtap="onZoomIn">+</view>
       </view>
     </view>
   </view>
 
-  <view class="legend-box">
-    <view class="legend-title">图例（点击筛选 / 选择目的地）</view>
+  <!-- 图例折叠栏 -->
+  <view class="legend-toggle" bindtap="onToggleLegend">
+    <text>{{legendOpen ? '收起图例 ▲' : '展开图例 ▼'}}</text>
+  </view>
+  <view class="legend-box {{legendOpen ? '' : 'collapsed'}}">
     <view class="route-line-legend" wx:if="{{hasRoute}}">
       <view class="route-line-swatch"></view>
-      <text class="route-line-legend-text">绿色线沿米色园路弯道绘制，白点为路线节点</text>
+      <text class="route-line-legend-text">绿色线为规划路线，白点为路线节点</text>
     </view>
     <view class="legend-row">
       <block wx:for="{{legendItems}}" wx:key="type">
@@ -91,22 +94,22 @@
     </view>
   </view>
 
-  <view class="route-box">
-    <view class="route-title">{{isNavigating?'导航中':'推荐园路'}}</view>
-    <text class="route-path">{{routeText}}</text>
-    <text class="route-meta">约 {{routeMeters}} 米 · 步行 {{routeMinutes}} 分钟</text>
-    <view class="route-actions">
-      <button class="route-btn primary" wx:if="{{!isNavigating}}" bindtap="startNavigation">开始导航</button>
-      <button class="route-btn warn" wx:if="{{isNavigating}}" bindtap="stopNavigation">结束导航</button>
-      <button class="route-btn" bindtap="planRoute">重新规划</button>
+  <!-- 底部操作栏 -->
+  <view class="footer-bar">
+    <view class="route-summary" wx:if="{{hasRoute}}">
+      <text class="route-summary-path">{{routeText}}</text>
+      <text class="route-summary-meta">{{routeMeters}}m · {{routeMinutes}}min</text>
+    </view>
+    <view class="footer-actions">
+      <button class="footer-btn primary" wx:if="{{!isNavigating}}" bindtap="startNavigation">开始导航</button>
+      <button class="footer-btn warn" wx:if="{{isNavigating}}" bindtap="stopNavigation">结束导航</button>
+      <button class="footer-btn ghost" bindtap="clearRoute">清除路线</button>
+      <button class="footer-btn ghost" bindtap="goAiRoute">AI 规划</button>
+      <button class="footer-btn ghost" bindtap="goFacility">设施</button>
     </view>
   </view>
 
-  <view class="toolbar">
-    <button class="tool-btn primary" bindtap="goAiRoute">AI规划路线</button>
-    <button class="tool-btn" bindtap="goFacility">设施查询</button>
-  </view>
-
+  <!-- POI 详情弹窗 -->
   <view class="popup" wx:if="{{showDetail}}">
     <view class="popup-inner">
       <view class="popup-title">{{currentPoi.name}}</view>

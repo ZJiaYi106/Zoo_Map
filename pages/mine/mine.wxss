@@ -1,6 +1,8 @@
 .mine-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background:
+    radial-gradient(ellipse 50% 30% at 50% 0%, rgba(200, 148, 62, 0.04) 0%, transparent 70%),
+    #F6F3ED;
   display: flex;
   flex-direction: column;
 }
@@ -17,45 +19,76 @@
 
 .icp-text {
   font-size: 22rpx;
-  color: #999;
+  color: #A69780;
   line-height: 1.5;
 }
 
+/* === 用户信息区 === */
 .user {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 56rpx 0 40rpx;
-  background: linear-gradient(180deg, #2a4538 0%, #3d5c4e 55%, #4a7264 100%);
-}
-
-.avatar {
-  width: 140rpx;
-  height: 140rpx;
-  border-radius: 50%;
-  background: #fff;
-  margin-bottom: 20rpx;
-  border: 4rpx solid rgba(255, 255, 255, 0.8);
-}
-
-.nickname {
-  font-size: 34rpx;
-  color: #fff;
-  font-weight: 600;
-}
-
-.menu {
-  margin: 24rpx;
-  background: #fff;
-  border-radius: 16rpx;
+  padding: 64rpx 0 48rpx;
+  background:
+    radial-gradient(ellipse 60% 50% at 30% 20%, rgba(200, 148, 62, 0.1) 0%, transparent 60%),
+    linear-gradient(180deg, #1B3329 0%, #1B4332 45%, #2D5240 100%);
+  position: relative;
   overflow: hidden;
 }
 
+.user::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 60rpx,
+      rgba(255, 255, 255, 0.012) 60rpx,
+      rgba(255, 255, 255, 0.012) 62rpx
+    );
+  pointer-events: none;
+}
+
+.avatar {
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 50%;
+  background: #FFF;
+  margin-bottom: 22rpx;
+  border: 4rpx solid rgba(200, 148, 62, 0.5);
+  box-shadow: 0 8rpx 28rpx rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 1;
+}
+
+.nickname {
+  font-size: 36rpx;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+  position: relative;
+  z-index: 1;
+}
+
+/* === 菜单 === */
+.menu {
+  margin: 28rpx 24rpx;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow:
+    0 4rpx 20rpx rgba(44, 34, 24, 0.05),
+    0 1rpx 0 rgba(44, 34, 24, 0.03);
+}
+
 .menu-item {
-  padding: 36rpx 32rpx;
+  padding: 38rpx 32rpx;
   font-size: 30rpx;
-  color: #333;
-  border-bottom: 1rpx solid #eee;
+  color: #2C2218;
+  border-bottom: 1rpx solid #F0EBE2;
+  font-weight: 500;
 }
 
 .menu-item:last-child {
@@ -63,10 +96,11 @@
 }
 
 .menu-item.danger {
-  color: #e53935;
+  color: #C7693A;
   text-align: center;
+  font-weight: 600;
 }
 
 .menu-item:active {
-  background: #f9f9f9;
+  background: #FBF8F4;
 }

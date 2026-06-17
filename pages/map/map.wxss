@@ -2,47 +2,58 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #e8f0e6;
+  background: #E8F0E6;
   box-sizing: border-box;
   overflow: hidden;
 }
 
-.nav-bar {
-  flex-shrink: 0;
-  margin: 14rpx 16rpx 0;
-  padding: 14rpx 18rpx;
-  font-size: 24rpx;
-  border-radius: 12rpx;
-  color: #38534a;
-  background: #dfeee8;
-}
-
-.nav-bar.on {
-  color: #fff;
-  background: linear-gradient(90deg, #2d6b5a, #3f8a73);
-}
-
-.planner {
+/* === 顶部合并栏：状态 + 起终点 === */
+.map-header {
   flex-shrink: 0;
   display: flex;
-  gap: 12rpx;
-  padding: 16rpx;
+  align-items: center;
+  gap: 10rpx;
+  padding: 10rpx 14rpx;
+}
+
+.nav-hint {
+  font-size: 22rpx;
+  color: #3D5A45;
+  background: #D8EAE0;
+  border-radius: 10rpx;
+  padding: 8rpx 14rpx;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.nav-hint.on {
+  color: #fff;
+  background: linear-gradient(90deg, #1B4332, #2D6A4F);
 }
 
 .picker {
-  background: #fff;
-  border: 1rpx solid #d7e4df;
-  color: #2d6b5a;
-  border-radius: 12rpx;
-  padding: 14rpx 16rpx;
-  font-size: 25rpx;
+  flex: 1;
+  min-width: 0;
+  background: #FFFFFF;
+  border: 1rpx solid #CDDCD2;
+  color: #1B4332;
+  border-radius: 10rpx;
+  padding: 8rpx 12rpx;
+  font-size: 23rpx;
+  font-weight: 500;
+  box-shadow: 0 1rpx 4rpx rgba(44, 34, 24, 0.03);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* === 地图容器（主要区域） === */
 .map-wrap {
   position: relative;
   flex: 1;
-  min-height: 48vh;
-  margin: 0 12rpx;
+  min-height: 0;
+  margin: 8rpx 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -50,14 +61,17 @@
 
 .inner-map {
   position: relative;
-  border-radius: 18rpx;
+  border-radius: 16rpx;
   overflow: hidden;
-  background: #d4e8d0;
-  border: 1rpx solid #b8d4b2;
-  box-shadow: 0 8rpx 24rpx rgba(45, 90, 60, 0.12);
+  background: #D4E8D0;
+  border: 2rpx solid #B8D4B2;
+  box-shadow:
+    0 6rpx 22rpx rgba(27, 67, 50, 0.1),
+    inset 0 0 0 1rpx rgba(255,255,255,0.4);
   touch-action: none;
 }
 
+/* === 地图场景层 === */
 .scene {
   position: absolute;
   left: 0;
@@ -77,33 +91,6 @@
   z-index: 1;
 }
 
-.zoom-bar {
-  position: absolute;
-  right: 12rpx;
-  bottom: 12rpx;
-  z-index: 30;
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
-}
-
-.zoom-btn {
-  width: 52rpx;
-  height: 52rpx;
-  line-height: 52rpx;
-  text-align: center;
-  font-size: 26rpx;
-  color: #2d6b5a;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1rpx solid #c5dbd2;
-  border-radius: 12rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
-}
-
-.zoom-btn:active {
-  background: #e8f2ee;
-}
-
 .map-bg {
   position: absolute;
   left: 0;
@@ -115,6 +102,59 @@
   display: block;
 }
 
+/* === 坐标提示 === */
+.coord-tip {
+  position: absolute;
+  left: 12rpx;
+  top: 12rpx;
+  z-index: 30;
+  font-size: 20rpx;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(27, 67, 50, 0.88);
+  border-radius: 10rpx;
+  padding: 6rpx 14rpx;
+  font-family: "Courier New", monospace;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.coord-tip.on {
+  opacity: 1;
+}
+
+/* === 缩放按钮 === */
+.zoom-bar {
+  position: absolute;
+  right: 12rpx;
+  bottom: 12rpx;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 5rpx;
+}
+
+.zoom-btn {
+  width: 52rpx;
+  height: 52rpx;
+  line-height: 52rpx;
+  text-align: center;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #1B4332;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1rpx solid #CDDCD2;
+  border-radius: 12rpx;
+  box-shadow: 0 3rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.zoom-btn:active {
+  background: #E8F2EE;
+  transform: scale(0.95);
+}
+
+/* === 道路 === */
 .road {
   position: absolute;
   height: 6rpx;
@@ -130,24 +170,26 @@
   z-index: 5;
   border-radius: 0;
   border: none;
-  background: linear-gradient(90deg, #7ecf9d 0%, #52b878 50%, #7ecf9d 100%);
+  background: linear-gradient(90deg, #7ECF9D 0%, #40916C 50%, #7ECF9D 100%);
   box-shadow:
-    0 0 3rpx rgba(82, 184, 120, 0.35),
-    0 1rpx 2rpx rgba(82, 184, 120, 0.2);
+    0 0 4rpx rgba(64, 145, 108, 0.35),
+    0 1rpx 2rpx rgba(64, 145, 108, 0.2);
 }
 
+/* === 路线节点 === */
 .route-dot {
   position: absolute;
   width: 6rpx;
   height: 6rpx;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 0 3rpx rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 0 4rpx rgba(255, 255, 255, 0.7);
   transform: translate(-50%, -50%);
   z-index: 6;
   pointer-events: none;
 }
 
+/* === POI 标记 === */
 .poi {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -177,7 +219,7 @@
   height: 12rpx;
   border-radius: 50%;
   border: 2rpx solid #fff;
-  background: #2e7d32;
+  background: #2E7D32;
   margin: 0 auto 2rpx;
   box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.18);
 }
@@ -186,38 +228,38 @@
   width: 14rpx;
   height: 14rpx;
   border-width: 2rpx;
-  box-shadow: 0 0 0 4rpx rgba(82, 184, 120, 0.32);
+  box-shadow: 0 0 0 4rpx rgba(64, 145, 108, 0.32);
   z-index: 1;
 }
 
 .poi.start .dot {
   width: 14rpx;
   height: 14rpx;
-  border-color: #1e7d32;
-  background: #1e7d32;
+  border-color: #1E7D32;
+  background: #1E7D32;
 }
 
 .poi.end .dot {
   width: 14rpx;
   height: 14rpx;
-  border-color: #e65100;
-  background: #e65100;
+  border-color: #C7693A;
+  background: #C7693A;
 }
 
-.poi.type-gate .dot { background: #1e88e5; }
-.poi.type-service .dot { background: #7b5fb7; }
-.poi.type-scenic .dot { background: #2e7d32; }
-.poi.type-view .dot { background: #ef6c00; }
-.poi.type-toilet .dot { background: #00838f; }
-.poi.type-shop .dot { background: #6d4c41; }
-.poi.type-rest .dot { background: #546e7a; }
+.poi.type-gate .dot { background: #457B9D; }
+.poi.type-service .dot { background: #7B5FB7; }
+.poi.type-scenic .dot { background: #2E7D32; }
+.poi.type-view .dot { background: #E07A3D; }
+.poi.type-toilet .dot { background: #00838F; }
+.poi.type-shop .dot { background: #6D4C41; }
+.poi.type-rest .dot { background: #546E7A; }
 
 .label {
   font-size: 16rpx;
-  color: #2d3b36;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 6rpx;
-  padding: 1rpx 6rpx;
+  color: #2C2218;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 8rpx;
+  padding: 2rpx 8rpx;
   white-space: nowrap;
   max-width: 140rpx;
   overflow: hidden;
@@ -225,15 +267,17 @@
   line-height: 1.25;
   transform: scale(0.92);
   transform-origin: center top;
+  font-weight: 500;
 }
 
 .poi.on-route .label {
-  border: 1rpx solid rgba(82, 184, 120, 0.45);
-  background: rgba(236, 252, 242, 0.96);
-  color: #2d6b4a;
+  border: 1rpx solid rgba(64, 145, 108, 0.4);
+  background: rgba(232, 250, 240, 0.96);
+  color: #2D6A4F;
   font-weight: 600;
 }
 
+/* === 用户位置 === */
 .user-pos {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -244,7 +288,7 @@
   width: 14rpx;
   height: 14rpx;
   border-radius: 50%;
-  background: #1677ff;
+  background: #1677FF;
   border: 2rpx solid #fff;
   box-shadow: 0 0 0 5rpx rgba(22, 119, 255, 0.2);
   margin: 0 auto 4rpx;
@@ -252,7 +296,7 @@
 
 .user-pos-label {
   font-size: 16rpx;
-  color: #0f4ea8;
+  color: #0F4EA8;
   background: rgba(255, 255, 255, 0.94);
   border: 1rpx solid rgba(22, 119, 255, 0.35);
   border-radius: 10rpx;
@@ -260,202 +304,230 @@
   white-space: nowrap;
 }
 
+/* === 图例（可折叠） === */
+.legend-toggle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin: 0 14rpx;
+  padding: 8rpx 0;
+  color: #5C5040;
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+.legend-toggle-arrow {
+  font-size: 20rpx;
+  color: #A69780;
+  transition: transform 0.2s ease;
+}
+
+.legend-toggle-arrow.open {
+  transform: rotate(180deg);
+}
+
 .legend-box {
   flex-shrink: 0;
-  margin: 8rpx 12rpx 0;
-  background: #fff;
-  border-radius: 12rpx;
-  padding: 8rpx 12rpx;
-  max-height: 22vh;
+  margin: 0 10rpx 4rpx;
+  background: #FFFFFF;
+  border-radius: 14rpx;
+  padding: 10rpx 14rpx;
+  max-height: 26vh;
   overflow-y: auto;
+  box-shadow: 0 3rpx 14rpx rgba(44, 34, 24, 0.05);
+}
+
+.legend-box.collapsed {
+  display: none;
 }
 
 .legend-title {
-  font-size: 22rpx;
-  color: #60756d;
+  font-size: 21rpx;
+  color: #A69780;
   margin-bottom: 8rpx;
 }
 
+/* 路线图例 */
 .route-line-legend {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  margin: 0 0 12rpx;
-  padding: 10rpx 12rpx;
-  background: linear-gradient(90deg, rgba(82, 184, 120, 0.10), rgba(130, 210, 160, 0.06));
+  gap: 10rpx;
+  margin: 0 0 10rpx;
+  padding: 8rpx 12rpx;
+  background: linear-gradient(90deg, rgba(64, 145, 108, 0.08), rgba(130, 210, 160, 0.04));
   border-radius: 10rpx;
-  border: 1rpx solid rgba(82, 184, 120, 0.3);
+  border: 1rpx solid rgba(64, 145, 108, 0.2);
 }
 
 .route-line-swatch {
   flex-shrink: 0;
-  width: 48rpx;
-  height: 14rpx;
+  width: 44rpx;
+  height: 12rpx;
   border-radius: 999rpx;
-  border: none;
-  background: linear-gradient(90deg, #7ecf9d 0%, #52b878 50%, #7ecf9d 100%);
-  box-shadow: 0 2rpx 8rpx rgba(82, 184, 120, 0.35);
+  background: linear-gradient(90deg, #7ECF9D 0%, #40916C 50%, #7ECF9D 100%);
+  box-shadow: 0 2rpx 6rpx rgba(64, 145, 108, 0.3);
 }
 
 .route-line-legend-text {
-  font-size: 20rpx;
-  color: #3d6b4f;
+  font-size: 19rpx;
+  color: #3D6B4F;
   line-height: 1.4;
   flex: 1;
 }
 
+/* 图例行 */
 .legend-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8rpx;
+  gap: 6rpx;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 6rpx;
+  gap: 5rpx;
   padding: 6rpx 10rpx;
-  border: 1rpx solid #d7e4df;
+  border: 1rpx solid #E6DED2;
   border-radius: 999rpx;
-  background: #f7fbf9;
-  font-size: 22rpx;
-  color: #415750;
+  background: #FBF8F4;
+  font-size: 20rpx;
+  color: #5C5040;
+  font-weight: 500;
 }
 
 .legend-item.on {
-  border-color: #2d6b5a;
-  background: #e8f2ee;
+  border-color: #1B4332;
+  background: #E6F0EB;
+  color: #1B4332;
 }
 
 .legend-dot {
-  width: 14rpx;
-  height: 14rpx;
+  width: 12rpx;
+  height: 12rpx;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.legend-dot.type-all { background: #455a64; }
-.legend-dot.type-gate { background: #1e88e5; }
-.legend-dot.type-service { background: #7b5fb7; }
-.legend-dot.type-scenic { background: #2e7d32; }
-.legend-dot.type-view { background: #ef6c00; }
-.legend-dot.type-toilet { background: #00838f; }
-.legend-dot.type-shop { background: #6d4c41; }
-.legend-dot.type-rest { background: #546e7a; }
+.legend-dot.type-all { background: #455A64; }
+.legend-dot.type-gate { background: #457B9D; }
+.legend-dot.type-service { background: #7B5FB7; }
+.legend-dot.type-scenic { background: #2E7D32; }
+.legend-dot.type-view { background: #E07A3D; }
+.legend-dot.type-toilet { background: #00838F; }
+.legend-dot.type-shop { background: #6D4C41; }
+.legend-dot.type-rest { background: #546E7A; }
 
 .legend-targets {
-  margin-top: 10rpx;
+  margin-top: 8rpx;
   display: flex;
   flex-wrap: wrap;
-  gap: 8rpx;
+  gap: 6rpx;
 }
 
 .legend-target {
-  font-size: 22rpx;
-  color: #2d6b5a;
-  border: 1rpx solid #cbe0d8;
+  font-size: 20rpx;
+  color: #1B4332;
+  border: 1rpx solid #CDDCD2;
   border-radius: 10rpx;
-  padding: 6rpx 10rpx;
-  background: #f6fbf9;
+  padding: 6rpx 12rpx;
+  background: #F8FBF9;
+  font-weight: 500;
 }
 
+.legend-target:active {
+  background: #E6F0EB;
+  border-color: #1B4332;
+}
 
-.route-box {
+/* === 底部信息栏（路线 + 工具栏 合并） === */
+.footer-bar {
   flex-shrink: 0;
-  margin: 14rpx 16rpx 0;
-  background: #fff;
-  border-radius: 14rpx;
-  padding: 14rpx 18rpx;
+  margin: 6rpx 10rpx;
+  padding: 10rpx 14rpx;
+  padding-bottom: calc(10rpx + env(safe-area-inset-bottom));
+  background: #FFFFFF;
+  border-radius: 16rpx 16rpx 0 0;
+  box-shadow: 0 -2rpx 12rpx rgba(44, 34, 24, 0.04);
 }
 
-.route-title {
-  font-size: 24rpx;
-  color: #2d6b5a;
-  font-weight: 600;
-  margin-bottom: 8rpx;
-}
-
-.route-path {
-  display: block;
-  font-size: 23rpx;
-  color: #333;
-  line-height: 1.45;
-}
-
-.route-meta {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 22rpx;
-  color: #666;
-}
-
-.route-actions {
-  margin-top: 12rpx;
+/* 路线摘要行 */
+.route-summary {
   display: flex;
+  align-items: center;
   gap: 10rpx;
+  margin-bottom: 8rpx;
   flex-wrap: wrap;
 }
 
-.route-btn {
-  flex: 1 1 46%;
-  height: 64rpx;
-  line-height: 64rpx;
-  border-radius: 34rpx;
-  border: 1rpx solid #2d6b5a;
-  color: #2d6b5a;
-  background: #fff;
-  font-size: 24rpx;
+.route-summary-path {
+  flex: 1;
+  min-width: 0;
+  font-size: 22rpx;
+  color: #2C2218;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.route-btn.primary {
-  color: #fff;
-  background: #2d6b5a;
-}
-
-.route-btn.warn {
-  color: #fff;
-  background: #b75e2f;
-  border-color: #b75e2f;
-}
-
-.route-btn::after {
-  border: none;
-}
-
-.toolbar {
+.route-summary-meta {
   flex-shrink: 0;
+  font-size: 20rpx;
+  color: #6B5F50;
+  font-weight: 600;
+  background: #F8F6F2;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+}
+
+/* 操作按钮行 */
+.footer-actions {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-  padding: 14rpx 12rpx 18rpx;
-  gap: 12rpx;
+  gap: 8rpx;
 }
 
-.tool-btn {
-  flex: 1 1 0;
-  font-size: 24rpx;
-  padding: 16rpx 8rpx;
-  line-height: 1.3;
-  background: #fff;
-  color: #2d6b5a;
-  border: 1rpx solid #2d6b5a;
-  border-radius: 12rpx;
+.footer-btn {
+  flex: 1;
+  height: 60rpx;
+  line-height: 60rpx;
+  border-radius: 30rpx;
+  font-size: 23rpx;
+  font-weight: 600;
+  text-align: center;
+  padding: 0;
 }
 
-.tool-btn::after {
+.footer-btn::after {
   border: none;
 }
 
-.tool-btn.primary {
-  background: #2d6b5a;
+.footer-btn.primary {
   color: #fff;
+  background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 100%);
+  border: none;
+  box-shadow: 0 3rpx 12rpx rgba(27, 67, 50, 0.18);
 }
 
-.tool-btn:active {
+.footer-btn.ghost {
+  color: #1B4332;
+  background: #FFFFFF;
+  border: 1.5rpx solid #1B4332;
+}
+
+.footer-btn.warn {
+  color: #fff;
+  background: linear-gradient(135deg, #C7693A 0%, #D4845A 100%);
+  border: none;
+  box-shadow: 0 3rpx 12rpx rgba(199, 105, 58, 0.18);
+}
+
+.footer-btn:active {
   opacity: 0.85;
 }
 
+/* === POI 详情弹窗 === */
 .popup {
   position: fixed;
   left: 0;
@@ -464,67 +536,93 @@
   z-index: 100;
   padding: 24rpx;
   padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(28, 17, 7, 0.4);
+  backdrop-filter: blur(4rpx);
+  -webkit-backdrop-filter: blur(4rpx);
 }
 
 .popup-inner {
-  background: #fff;
-  border-radius: 20rpx 20rpx 0 0;
-  padding: 28rpx;
-  box-shadow: 0 -4rpx 24rpx rgba(0, 0, 0, 0.08);
+  background: #FFFFFF;
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 32rpx 28rpx 24rpx;
+  box-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.1);
 }
 
 .popup-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #2d6b5a;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #1B4332;
   margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.popup-title::before {
+  content: '';
+  width: 6rpx;
+  height: 28rpx;
+  border-radius: 3rpx;
+  background: linear-gradient(180deg, #C8943E 0%, #1B4332 100%);
 }
 
 .popup-desc {
   font-size: 28rpx;
-  color: #555;
-  line-height: 1.6;
+  color: #5C5040;
+  line-height: 1.65;
   display: block;
-  margin-bottom: 18rpx;
+  margin-bottom: 20rpx;
 }
 
 .popup-actions {
   display: flex;
   gap: 10rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 18rpx;
 }
 
 .popup-btn {
   flex: 1;
-  height: 74rpx;
-  line-height: 74rpx;
-  background: #2d6b5a;
+  height: 76rpx;
+  line-height: 76rpx;
+  background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 100%);
   color: #fff;
-  border-radius: 36rpx;
+  border-radius: 38rpx;
   font-size: 26rpx;
+  font-weight: 600;
+  box-shadow: 0 4rpx 14rpx rgba(27, 67, 50, 0.2);
 }
 
 .popup-btn.ghost {
-  background: #fff;
-  color: #2d6b5a;
-  border: 1rpx solid #2d6b5a;
+  background: #FFFFFF;
+  color: #1B4332;
+  border: 1.5rpx solid #1B4332;
+  box-shadow: none;
 }
 
 .popup-btn::after {
   border: none;
 }
 
+.popup-btn:active {
+  opacity: 0.85;
+}
+
 .popup-close {
   width: 100%;
   height: 80rpx;
   line-height: 80rpx;
-  background: #2d6b5a;
+  background: linear-gradient(135deg, #C8943E 0%, #D4A853 100%);
   color: #fff;
   border-radius: 40rpx;
   font-size: 28rpx;
+  font-weight: 600;
+  box-shadow: 0 4rpx 14rpx rgba(200, 148, 62, 0.2);
 }
 
 .popup-close::after {
   border: none;
+}
+
+.popup-close:active {
+  opacity: 0.85;
 }

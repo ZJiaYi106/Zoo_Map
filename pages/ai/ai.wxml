@@ -19,7 +19,7 @@
 
   <view class="input-row">
     <input class="input" placeholder="路线规划、景点问答、打卡需求…" value="{{input}}" bindinput="onInput" confirm-type="send" bindconfirm="send" />
-    <button class="send-btn" bindtap="send">发送</button>
+    <button class="send-btn" bindtap="send">↑</button>
   </view>
 
   <view class="voice-row">

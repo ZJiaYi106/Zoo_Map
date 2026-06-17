@@ -1,26 +1,61 @@
-/** 全局样式：秦皇岛野生动物园 AI 导览 **/
+/** 秦皇岛野生动物园 AI 导览 — Wilderness Reserve 设计系统 **/
 
 page {
-  background-color: #f5f5f5;
-  font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+  --color-primary: #1B4332;
+  --color-primary-light: #2D6A4F;
+  --color-primary-soft: #40916C;
+  --color-primary-surface: #E6F0EB;
+  --color-accent: #C8943E;
+  --color-accent-light: #F5E2B6;
+  --color-accent-surface: #FDF8F0;
+  --color-bg: #F6F3ED;
+  --color-bg-warm: #FBF8F4;
+  --color-surface: #FFFFFF;
+  --color-text: #2C2218;
+  --color-text-secondary: #6B5F50;
+  --color-text-muted: #A69780;
+  --color-success: #40916C;
+  --color-success-light: #D8F3DC;
+  --color-danger: #C7693A;
+  --color-danger-light: #FCE4D6;
+  --color-info: #4C7B9A;
+  --color-info-light: #DBECF5;
+  --color-border: #E6DED2;
+  --color-border-light: #F0EBE2;
+  --radius-sm: 8rpx;
+  --radius-md: 14rpx;
+  --radius-lg: 20rpx;
+  --radius-xl: 28rpx;
+  --radius-full: 999rpx;
+  --shadow-xs: 0 1rpx 4rpx rgba(44, 34, 24, 0.03);
+  --shadow-sm: 0 2rpx 10rpx rgba(44, 34, 24, 0.05);
+  --shadow-md: 0 6rpx 22rpx rgba(44, 34, 24, 0.07);
+  --shadow-lg: 0 14rpx 36rpx rgba(44, 34, 24, 0.09);
+
+  background-color: var(--color-bg);
+  font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
   font-size: 28rpx;
-  color: #333;
+  color: var(--color-text);
   box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* 通用主按钮：与需求一致 */
+/* === 通用主按钮 === */
 .btn-primary {
   width: 80%;
-  height: 45px;
-  line-height: 45px;
-  background-color: #2d6b5a;
+  height: 48px;
+  line-height: 48px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   color: #fff;
-  border-radius: 22px;
+  border-radius: var(--radius-full);
   text-align: center;
   margin: 20px auto;
   padding: 0;
   border: none;
   font-size: 30rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+  box-shadow: 0 4rpx 16rpx rgba(27, 67, 50, 0.2);
 }
 
 .btn-primary::after {
@@ -28,9 +63,87 @@ page {
 }
 
 .btn-primary-hover {
-  opacity: 0.88;
+  opacity: 0.85;
+  transform: scale(0.98);
 }
 
+/* === 通用卡片 === */
+.card-base {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* === 安全区 === */
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* === 页面底色 === */
+.page-bg {
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+/* === 纹理背景 === */
+.texture-bg {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(200, 148, 62, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 90%, rgba(27, 67, 50, 0.03) 0%, transparent 60%),
+    var(--color-bg);
+}
+
+/* === 分割线 === */
+.divider {
+  width: 60rpx;
+  height: 4rpx;
+  border-radius: 2rpx;
+  background: var(--color-accent);
+  opacity: 0.5;
+}
+
+/* === 标签徽章 === */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 16rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.5rpx;
+}
+
+.badge-primary {
+  background: var(--color-primary-surface);
+  color: var(--color-primary);
+}
+
+.badge-accent {
+  background: var(--color-accent-light);
+  color: #8B6914;
+}
+
+/* === 章节标题 === */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 16rpx;
+}
+
+.section-title::before {
+  content: '';
+  width: 6rpx;
+  height: 28rpx;
+  border-radius: 3rpx;
+  background: linear-gradient(180deg, var(--color-accent) 0%, var(--color-primary) 100%);
+}
+
+/* === 按压反馈 === */
+.tap-active:active {
+  transform: scale(0.97);
+  transition: transform 0.12s ease;
 }
