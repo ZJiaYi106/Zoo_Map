@@ -165,6 +165,113 @@ Page({
     });
   },
 
+  takePhoto() {
+    const that = this;
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ["image"],
+      sourceType: ["camera", "album"],
+      sizeType: ["compressed"],
+      success(res) {
+        that._recognizeAnimal(res.tempFiles[0].tempFilePath);
+      },
+      fail(err) {
+        if (err.errMsg.indexOf("cancel") === -1) {
+          wx.showToast({ title: "拍照或选图失败", icon: "none" });
+        }
+      }
+    });
+  },
+
+  _recognizeAnimal(filePath) {
+    const that = this;
+    const placeholderId = "r" + Date.now();
+    const msgs = this.data.messages.concat([
+      { id: placeholderId, role: "user", content: "正在识别照片中的动物…" }
+    ]);
+    this.setData({
+      messages: msgs,
+      input: "",
+      scrollTo: "msg-" + (msgs.length - 1)
+    });
+    wx.showLoading({ title: "识别中" });
+
+    const fs = wx.getFileSystemManager();
+    let base64;
+    try {
+      base64 = fs.readFileSync(filePath, "base64");
+    } catch (e) {
+      wx.hideLoading();
+      wx.showToast({ title: "图片读取失败", icon: "none" });
+      this._removePlaceholder(placeholderId);
+      return;
+    }
+
+    const token = (app.globalData && app.globalData.token) || wx.getStorageSync("token") || "";
+    const base = require("../../utils/request.js").getApiBase();
+
+    wx.request({
+      url: base + "/api/ai/recognize-animal",
+      method: "POST",
+      timeout: 60000,
+      data: { image_base64: base64 },
+      header: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: "Bearer " + token } : {})
+      },
+      success(res) {
+        wx.hideLoading();
+        const body = res.data;
+        if (res.statusCode === 200 && body && body.code === 0) {
+          const d = body.data;
+          const animalName = d.animal_name || "未知动物";
+          const confidence = d.confidence != null ? (d.confidence * 100).toFixed(0) + "%" : "";
+          const explanation = d.explanation || "";
+          const scenic = d.related_scenic;
+          let displayText = "识别结果：" + animalName;
+          if (confidence) displayText += "（置信度 " + confidence + "）";
+          displayText += "\n\n" + explanation;
+          if (scenic && scenic.name) {
+            displayText += "\n\n相关展区：" + scenic.name;
+          }
+          const list = that.data.messages.map(m => {
+            if (m.id === placeholderId) {
+              return { id: "u" + Date.now(), role: "user", content: "我拍了一张动物照片" };
+            }
+            return m;
+          });
+          const newList = list.concat([
+            { id: "a" + Date.now(), role: "assistant", content: displayText, audio_url: "" }
+          ]);
+          that.setData({
+            messages: newList,
+            lastAssistantText: displayText,
+            lastAudioUrl: "",
+            scrollTo: "msg-" + (newList.length - 1)
+          });
+          that._persistHistory(newList);
+        } else {
+          let msg = "识别失败";
+          if (body && body.message) msg = body.message;
+          if (body && body.detail) msg = JSON.stringify(body.detail).slice(0, 100);
+          wx.showToast({ title: msg, icon: "none", duration: 3000 });
+          that._removePlaceholder(placeholderId);
+        }
+      },
+      fail(err) {
+        wx.hideLoading();
+        const em = (err && err.errMsg) || "";
+        wx.showToast({ title: em.indexOf("timeout") >= 0 ? "识别超时" : "请求失败，请检查后端是否启动", icon: "none", duration: 3000 });
+        that._removePlaceholder(placeholderId);
+      }
+    });
+  },
+
+  _removePlaceholder(id) {
+    const filtered = this.data.messages.filter(m => m.id !== id);
+    this.setData({ messages: filtered });
+  },
+
   playVoice() {
     const url = this.data.lastAudioUrl;
     const text = this.data.lastAssistantText;

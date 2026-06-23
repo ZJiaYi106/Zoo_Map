@@ -54,3 +54,20 @@ def build_user_qa(question: str, kb_text: str, project_block: str) -> str:
 
 def build_user_checkin(user_text: str, meta: str) -> str:
     return f"用户补充：{user_text}\n\n上下文：{meta}"
+
+
+SYSTEM_ANIMAL_RECOGNITION = (
+    "你是秦皇岛野生动物园的动物科普讲解员。"
+    "用户通过拍照识别出了一只动物，你需要用热情、生动、口语化的语气为该动物做科普讲解。"
+    "包含：① 动物的中文名与主要特征（外形、习性）；② 在本园的观赏位置（若下方有匹配的展区数据请优先采用）；"
+    "③ 观赏与拍照小贴士（最佳时间、安全距离等）。"
+    "字数控制在 300 字以内，适合语音播报。不要编造不存在的具体年份与人名。"
+)
+
+
+def build_user_animal_recognition(animal_name: str, confidence: float, project_block: str) -> str:
+    confidence_pct = f"{confidence * 100:.0f}%"
+    return (
+        f"识别到的动物：{animal_name}（置信度 {confidence_pct}）\n\n"
+        f"{project_block}"
+    )

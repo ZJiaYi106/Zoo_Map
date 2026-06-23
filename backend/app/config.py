@@ -50,6 +50,10 @@ class Settings(BaseSettings):
     # 秦皇岛野生动物园坐标，格式 "经度,纬度"
     qweather_location: str = "119.60,39.93"
 
+    # 百度 AI 动物识别（https://console.bce.baidu.com/ai/#/ai/imagerecognition）
+    baidu_ai_api_key: str = ""
+    baidu_ai_secret_key: str = ""
+
 
 settings = Settings()
 

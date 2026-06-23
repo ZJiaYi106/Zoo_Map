@@ -18,6 +18,7 @@
   </view>
 
   <view class="input-row">
+    <button class="camera-btn" bindtap="takePhoto">📷</button>
     <input class="input" placeholder="路线规划、景点问答、打卡需求…" value="{{input}}" bindinput="onInput" confirm-type="send" bindconfirm="send" />
     <button class="send-btn" bindtap="send">↑</button>
   </view>

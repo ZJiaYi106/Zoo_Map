@@ -12,6 +12,7 @@ from app.deps import get_current_user
 from app.models.orm import ChatHistory, User
 from app.schemas.common import ApiResponse
 from app.services import ai_agent
+from app.services.animal_recognition import recognize_animal
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
 
@@ -78,3 +79,33 @@ async def scenic_explain(
 ):
     text = await ai_agent.run_scenic_guide(body.scenic_name, db)
     return ApiResponse(data={"content": text, "reply": text})
+
+
+class AnimalRecognizeBody(BaseModel):
+    image_base64: str = Field(..., min_length=1, description="base64 编码的图片")
+
+
+@router.post("/recognize-animal", response_model=ApiResponse[dict])
+async def recognize_animal_endpoint(
+    body: AnimalRecognizeBody,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """拍照识动物：上传 base64 图片，返回识别结果 + AI 科普讲解。"""
+    result = await recognize_animal(body.image_base64)
+    animal_name = result["name"]
+    confidence = result["score"]
+
+    data = await ai_agent.run_animal_explain(animal_name, confidence, db)
+
+    # 持久化对话
+    row = ChatHistory(
+        user_id=user.id,
+        user_input=f"[拍照识别] {animal_name}（置信度 {confidence:.0%}）",
+        ai_output=data["explanation"],
+        type="animal_recognition",
+    )
+    db.add(row)
+    db.commit()
+
+    return ApiResponse(data=data)

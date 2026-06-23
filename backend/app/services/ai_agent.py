@@ -256,6 +256,33 @@ async def run_checkin(user_text: str, meta: str) -> str:
     return await chat_completion(prompts.SYSTEM_CHECKIN, u, temperature=0.6)
 
 
+async def run_animal_explain(animal_name: str, confidence: float, db: Session) -> dict:
+    """根据识别出的动物名，匹配园内展区，调用 LLM 生成科普讲解。"""
+    project_block = build_project_context_for_prompt(db)
+    u = prompts.build_user_animal_recognition(animal_name, confidence, project_block)
+    explanation = await chat_completion(prompts.SYSTEM_ANIMAL_RECOGNITION, u, temperature=0.5)
+
+    related_scenic = None
+    match = (
+        db.query(Scenic)
+        .filter(Scenic.name.contains(animal_name))
+        .first()
+    )
+    if match:
+        related_scenic = {
+            "id": match.id,
+            "name": match.name,
+            "category": match.category or "",
+        }
+
+    return {
+        "animal_name": animal_name,
+        "confidence": confidence,
+        "explanation": explanation,
+        "related_scenic": related_scenic,
+    }
+
+
 async def run_chat_pipeline(
     db: Session,
     user_text: str,
